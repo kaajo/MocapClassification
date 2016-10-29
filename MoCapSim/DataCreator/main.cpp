@@ -20,7 +20,7 @@ int main(int /*argc*/, char *argv[])
 
     for (int i = 1; i < anims[0][0][0].size(); ++i)
     {
-        creator.createMetricImage(anims, std::bind(MetricFunctions::nodeMovementQuantity, std::placeholders::_1, 1), argv[1], QString("nodeMovementQuantity") + QString::number(i));
+        creator.createMetricImage(anims, std::bind(MetricFunctions::nodeMovementQuantity, std::placeholders::_1, i), argv[1], QString("nodeMovementQuantity") + QString::number(i));
     }
 
     //creator.createSimilarityImage(anims, SimilarityFunctions::pointDist, false);

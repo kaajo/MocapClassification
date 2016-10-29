@@ -32,56 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setup3DScene();
 
-    ModelFactory factory;
-
-    m_anims = factory.load("/home/kaajo/Dokumenty/SDIPR/data/objects-annotations-specific-coords_normPOS.data");    
-
-    std::vector<std::vector<double>> m(m_anims.size(), std::vector<double>(m_anims.size(), 0.0));
-
-    cv::Mat mat(m_anims.size(), m_anims.size(), CV_32FC1);
-
-    for (unsigned int i=0; i < m_anims.size(); i++) {
-        for (unsigned int j=0; j < m_anims.size(); j++) {
-            // generate similarity
-            double d = 0.0;//m_anims[i]->getError(*m_anims[j], pointDistance); //MocapAnimation::similarity(stats[i], stats[j]);
-            double similarity = exp(-d);
-            m[i][j] = similarity;
-            m[j][i] = similarity;
-
-
-            mat.at<float>(i,j) = similarity;
-            mat.at<float>(j,i) = similarity;
-        }
-    }
-
-    cv::imwrite("image.exr", mat);
-
-    cv::Mat reim;
-
-    reim = cv::imread("image.exr", CV_LOAD_IMAGE_ANYDEPTH);
-
-    cv::Mat diff = mat != reim;
-
-    qDebug() << reim.type();
-
-    if (cv::countNonZero(diff) == 0)
-    {
-        qDebug() << "hovado";
-    }
-
-    makeClusters();
-
-    //ref
-    ref = m_anims[6];
-    second = m_anims[7];
-
-
-    if(!second)
-    {
-        qDebug() <<"omg";
-    }
-
-
     // Material
     Qt3DExtras::QPhongMaterial *material = new Qt3DExtras::QPhongMaterial(rootEntity);
     material->setDiffuse(QColor::fromRgbF(1.0f, 0.0f, 0.0f, 1.0f));
@@ -89,9 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Qt3DExtras::QPhongMaterial *material2 = new Qt3DExtras::QPhongMaterial(rootEntity);
     material->setDiffuse(QColor::fromRgbF(0.0f, 1.0f, 0.0f, 1.0f));
 
-    int size = ref->operator[](0).size();
-
-    for(int i = 0; i < size; ++i)
+    for(int i = 0; i < 31; ++i)
     {
         // Sphere
         Qt3DCore::QEntity *sphereEntity = new Qt3DCore::QEntity(rootEntity);
@@ -99,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
         sphereMesh->setRadius(0.3f);
 
         Qt3DCore::QTransform *sphereTransform = new Qt3DCore::QTransform();
-        sphereTransform->setTranslation(ref->operator[](0)[i]);
+        sphereTransform->setTranslation(QVector3D(0.0,0.0,0.0));
 
 
         sphereEntity->addComponent(sphereMesh);
@@ -109,9 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
         m_refTransforms.push_back(sphereTransform);
     }
 
-    int size2 = second->operator[](0).size();
-
-    for(int i = 0; i < size2; ++i)
+    for(int i = 0; i < 31; ++i)
     {
         // Sphere
         Qt3DCore::QEntity *sphereEntity = new Qt3DCore::QEntity(rootEntity);
@@ -119,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
         sphereMesh->setRadius(0.3f);
 
         Qt3DCore::QTransform *sphereTransform = new Qt3DCore::QTransform();
-        sphereTransform->setTranslation(second->operator[](0)[i]);
+        sphereTransform->setTranslation(QVector3D(0.0,0.0,0.0));
 
 
         sphereEntity->addComponent(sphereMesh);
@@ -133,10 +79,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "align error: " << second->allign(*ref, pointDist);
     qDebug() << " shift: " << second->getShift();
     */
-
-    m_timer = new QTimer(this);
-    connect(m_timer, &QTimer::timeout, this, &MainWindow::onTimer);
-    m_timer->start(30);
 }
 
 MainWindow::~MainWindow()
@@ -147,26 +89,40 @@ MainWindow::~MainWindow()
 
 void MainWindow::drawUpdate()
 {
-    int size = ref->operator[](m_time).size();
+    if (!m_ref || !m_second) return;
+
+    int size = m_ref->operator[](m_time).size();
 
     for(int i = 0; i < size; ++i)
     {
-        m_refTransforms[i]->setTranslation(ref->operator[](m_time)[i]);
+        m_refTransforms[i]->setTranslation(m_ref->operator[](m_time)[i]);
 
     }
 
-    int size2 = second->operator[](m_time).size();
+    int size2 = m_second->operator[](m_time).size();
 
     for(int i = 0; i < size2; ++i)
     {
-        m_transforms[i]->setTranslation(second->operator[](m_time)[i]);
+        m_transforms[i]->setTranslation(m_second->operator[](m_time)[i]);
 
     }
 
-    if(m_time > ref->size() + ref->getShift() && m_time > second->size() + second->getShift())
+    if(m_time > m_ref->size() && m_time > m_second->size())
     {
         m_time = 0;
     }
+}
+
+void MainWindow::setAnims(MocapAnimation *ref, MocapAnimation *second)
+{
+    m_ref = ref;
+    m_second = second;
+
+    if (m_timer) m_timer->deleteLater();
+
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout, this, &MainWindow::onTimer);
+    m_timer->start(30);
 }
 
 void MainWindow::onTimer()
@@ -203,75 +159,24 @@ void MainWindow::setup3DScene()
     view->setRootEntity(rootEntity);
 }
 
-void MainWindow::estimateCategories(QVector<MocapAnimation*> anims)
+void MainWindow::on_refID_textChanged(const QString &arg1)
 {
-    QVector<QVector<MocapAnimation*>> categories;
-    categories.push_back(QVector<MocapAnimation*>(1,anims[0]));
+    bool ok = false;
+    int id = arg1.toInt(&ok);
 
-    double treshold = 0.00006;
-
-    for(int i = 1; i < anims.size(); ++i)
+    if (ok && id < m_anims.size())
     {
-        double minError = std::numeric_limits<double>::max();
-        int minErrorId = -1;
-
-        for (int j = 0; j < categories.size(); ++j)
-        {
-            double error = 0.0; // anims[i]->/*getError(*categories[j][0],pointDist);//*/getError(*categories[j][0],pointDist);
-
-            if(error < minError)
-            {
-                minErrorId = j;
-                minError = error;
-            }
-        }
-
-        anims[i]->setShift(0);
-        if(minError < treshold)
-        {
-            categories[minErrorId].push_back(anims[i]);
-        }
-        else
-        {
-            categories.push_back(QVector<MocapAnimation*>(1,anims[i]));
-        }
-    }
-
-    qDebug() << "processing stats for " << categories.size() << " categories";
-
-    for(int i = 0; i < categories.size(); ++i)
-    {
-        for(int j = 0; j < categories[i].size(); ++j)
-        {
-            qDebug() << i << " " << categories[i][j]->getRealCategory();
-        }
-    }
-
-    qDebug() << "finished";
-}
-
-void MainWindow::makeClusters()
-{
-    DbScan dbscan(m_anims,.0071,1);
-
-    dbscan.run();
-
-    auto groups = dbscan.getGroups();
-
-    qDebug() << "group: " << groups.size();
-
-    for (size_t i = 0; i < groups.size(); ++i)
-    {
-        qDebug() << "id: " << i;
-
-        for (size_t j = 0; j < groups[i].size(); ++j)
-        {
-            qDebug() << "realID: " << groups[i][j]->getRealCategory();
-        }
+        setAnims(m_anims[id],m_second);
     }
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_secID_textChanged(const QString &arg1)
 {
-    estimateCategories(m_anims);
+    bool ok = false;
+    int id = arg1.toInt(&ok);
+
+    if (ok && id < m_anims.size())
+    {
+        setAnims(m_ref,m_anims[id]);
+    }
 }

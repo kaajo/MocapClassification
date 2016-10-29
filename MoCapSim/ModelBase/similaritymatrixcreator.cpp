@@ -95,7 +95,7 @@ cv::Mat SimilarityMatrixCreator::createMatrix(QVector<MocapAnimation *> anims, M
             }
             else
             {
-                retVal.at<float>(i,j) = retVal.at<float>(j,i) = MocapAnimation::getError(*anims[i], *anims[j], function, allign);
+                retVal.at<float>(i,j) = retVal.at<float>(j,i) = function(*anims[i], *anims[j]);
             }
         }
     }

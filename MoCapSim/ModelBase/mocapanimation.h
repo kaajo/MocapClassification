@@ -46,32 +46,36 @@ class MocapAnimation
 {
 public:
     typedef QVector<QVector3D> MocapPose;
-    typedef std::function<float(MocapAnimation,MocapAnimation)> SimilarityFunction;
+    typedef std::function<float(const MocapAnimation,const MocapAnimation)> SimilarityFunction;
     typedef std::function<float(const MocapAnimation)> MetricFunction;
+    typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 
     MocapAnimation(int category,QVector<MocapPose> poses);
 
-    static float getError(MocapAnimation first, MocapAnimation second, SimilarityFunction function, bool allign = true);
+    static Results getResults(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+    static Results getResults(const Results &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+
     float getMetric(const MetricFunction function) const;
 
     int size() const {return m_posesInTime.size();}
 
     const MocapPose operator[](int position) const;
 
-    int getShift() const;
-    void setShift(int shift);
-
     int16_t getRealCategory() const;
 
     QVector<MocapPose> getPosesInTime() const;
 
+    std::array<float,31> getMovementQuantity() const {return m_movementQuantity;}
+
 private:
+    static QPair<float,QPair<int,MocapAnimation*>> mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
+    static QPair<float,MocapAnimation*> mapFun2(MocapAnimation *second, const MocapAnimation* anim, MocapAnimation::SimilarityFunction function);
+
     static QMap<int, QList<int>> m_successors;
 
-   //QVector<float> getMovementQuantity();
+    std::array<float,31> m_movementQuantity;
 
     QVector<MocapPose> m_posesInTime;
-    int m_shift = 0;
 
     int16_t m_category = -1;
 };

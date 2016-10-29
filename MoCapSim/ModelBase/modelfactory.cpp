@@ -3,11 +3,13 @@
 #include <QFile>
 #include <QTextStream>
 
+#include <QLoggingCategory>
+
 ModelFactory::ModelFactory()
 {
 }
 
-QVector<MocapAnimation*> ModelFactory::load(const QString &path)
+QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
 {
     QVector<MocapAnimation*> retVal;
 
@@ -16,6 +18,7 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path)
 
     if(!file.isOpen())
     {
+        qWarning() << "could not load animations: " << file.error();
         return retVal;
     }
 
@@ -29,11 +32,6 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path)
 
         if(line[0] == '#')
         {
-            if (retVal.size() > 40)
-            {
-                //break;
-            }
-
             if (currCatID != -1)
             {
                 retVal.push_back(new MocapAnimation(currCatID,currentPoses));
@@ -52,6 +50,10 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path)
             currentPoses.push_back(parseCoordsLine(line));
         }
 
+        if (maxNumber != -1 && retVal.size() >= maxNumber)
+        {
+            break;
+        }
     }
 
     if (! currentPoses.empty())
@@ -61,6 +63,11 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path)
 
 
     return retVal;
+}
+
+void ModelFactory::save(const QString &path, const QVector<MocapAnimation *> anims)
+{
+
 }
 
 MocapAnimation::MocapPose ModelFactory::parseCoordsLine(const QString &line)

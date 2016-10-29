@@ -6,8 +6,6 @@
 
 QT       += opengl concurrent
 
-QT       -= gui
-
 QMAKE_CXXFLAGS += -std=c++11 -pedantic -Wall -Wextra
 
 TARGET = ModelBase

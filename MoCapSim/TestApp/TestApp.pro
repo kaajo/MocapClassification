@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui 3dcore 3drender 3dextras
+QT       += core gui 3dcore 3drender 3dextras concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QMAKE_CXXFLAGS += -std=c++11 -pedantic -Wall -Wextra
+QMAKE_CXXFLAGS += -std=c++11 -pedantic -Wall -Wextra -march=native
 
 TARGET = TestApp
 TEMPLATE = app
@@ -27,7 +27,8 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
          dbscan.h \
          validator.h \
-        clustering.h
+        clustering.h \
+    functions.h
 
 FORMS    += mainwindow.ui
 

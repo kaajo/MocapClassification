@@ -11,7 +11,8 @@ class ModelFactory
 public:
     ModelFactory();
 
-    QVector<MocapAnimation *> load(const QString &path);
+    QVector<MocapAnimation*> load(const QString &path, int maxNumber = -1);
+    void save(const QString &path, const QVector<MocapAnimation*> anims);
 
 private:
     MocapAnimation::MocapPose parseCoordsLine(const QString &line);

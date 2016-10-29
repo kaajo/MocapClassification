@@ -25,13 +25,17 @@ public:
 
     void drawUpdate();
 
+    void setAnims(MocapAnimation* ref, MocapAnimation* second);
+    void setAnims(QVector<MocapAnimation*> anims) {m_anims = anims;}
+
 signals:
     void timeChanged();
 
 private slots:
     void onTimer();
 
-    void on_pushButton_clicked();
+    void on_refID_textChanged(const QString &arg1);
+    void on_secID_textChanged(const QString &arg1);
 
 private:
     Ui::MainWindow *ui;
@@ -44,16 +48,11 @@ private:
     Qt3DCore::QEntity *rootEntity;
     void setup3DScene();
 
-    MocapAnimation* ref = nullptr, *second = nullptr;
+    MocapAnimation* m_ref = nullptr, *m_second = nullptr;
     QVector<Qt3DCore::QTransform*> m_refTransforms, m_transforms;
 
 
     QTimer *m_timer = nullptr;
-
-    void estimateCategories(QVector<MocapAnimation *> anims);
-
-    void makeClusters();
-
 };
 
 #endif // MAINWINDOW_H
