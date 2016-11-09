@@ -90,10 +90,6 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a
 #    QMAKE_EXTRA_COMPILERS += cuda
 #}
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib64/release/ -lclustering
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/local/lib64/debug/ -lclustering
-else:unix: LIBS += -L$$PWD/../../../../../../../usr/local/lib64/ -lclustering
-
 INCLUDEPATH += $$PWD/../../../../../../../usr/local/lib64
 DEPENDPATH += $$PWD/../../../../../../../usr/local/lib64
 

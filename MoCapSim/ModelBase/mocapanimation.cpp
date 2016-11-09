@@ -5,18 +5,8 @@
 MocapAnimation::MocapAnimation(int category, QVector<MocapPose> poses)
     : m_posesInTime(poses), m_category(category)
 {
-    //compute movement quantity
-    for (size_t n = 0; n < 31; ++n)
-    {
-        float q = 0.0f;
-
-        for (int i = 1; i < m_posesInTime.size(); ++i)
-        {
-            q += (m_posesInTime[i][n] - m_posesInTime[i-1][n]).length();
-        }
-
-        m_movementQuantity[n] = q;
-    }
+    computeMovementQuantity();
+    computeVoxels();
 }
 
 MocapAnimation::Results MocapAnimation::getResults(const QVector<MocapAnimation*> &anims,const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float>> &distanceMat)
@@ -145,7 +135,31 @@ QPair<float,QPair<int,MocapAnimation*>> MocapAnimation::mapFun(const QPair<int,M
     return QPair<float,QPair<int,MocapAnimation*>>(function(*anim,*it.second),it);
 }
 
-QPair<float, MocapAnimation *> MocapAnimation::mapFun2(MocapAnimation *second,const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
+void MocapAnimation::computeMovementQuantity()
 {
-    return QPair<float,MocapAnimation*>(function(*anim,*second), second);
+    for (size_t n = 0; n < 31; ++n)
+    {
+        float q = 0.0f;
+
+        for (int i = 1; i < m_posesInTime.size(); ++i)
+        {
+            q += (m_posesInTime[i][n] - m_posesInTime[i-1][n]).length();
+        }
+
+        m_movementQuantity[n] = q;
+    }
+}
+
+void MocapAnimation::computeVoxels()
+{
+    for (int i = 1; i < m_posesInTime.size(); ++i)
+    {
+        for (size_t n = 0; n < 31; ++n)
+        {
+            const QVector3D &pos = m_posesInTime[i][n];
+            QVector3D voxel(floor(pos.x()),floor(pos.y()),floor(pos.z()));
+
+           ++m_voxelMap[floor(pos.x())][floor(pos.y())][floor(pos.z())];
+        }
+    }
 }

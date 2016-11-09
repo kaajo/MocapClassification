@@ -4,7 +4,6 @@
 #include <mocapanimation.h>
 
 #include <vector>
-#include <vector_functions.h>
 
 #include <QVector3D>
 

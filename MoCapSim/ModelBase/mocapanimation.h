@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QVector3D>
 #include <QMap>
+#include <QHash>
 #include <QList>
 
 #include <functional>
@@ -69,11 +70,12 @@ public:
 
 private:
     static QPair<float,QPair<int,MocapAnimation*>> mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
-    static QPair<float,MocapAnimation*> mapFun2(MocapAnimation *second, const MocapAnimation* anim, MocapAnimation::SimilarityFunction function);
-
-    static QMap<int, QList<int>> m_successors;
 
     std::array<float,31> m_movementQuantity;
+    void computeMovementQuantity();
+
+    QHash<int,QHash<int,QHash<int,int>>> m_voxelMap;
+    void computeVoxels();
 
     QVector<MocapPose> m_posesInTime;
 

@@ -10,8 +10,6 @@
 
 #include <cassert>
 #include <vector>
-#include <vector_functions.h>
-
 
 #define NUM_OF_NODES 31
 
@@ -204,8 +202,6 @@ float pointDistanceAlligned(const MocapAnimation &first,const MocapAnimation &se
 
 float discreteSpaceInTime(const MocapAnimation &first,const MocapAnimation &second)
 {
-
-
     int size1 = first.size();
 
     for(int i = 0; i < size1; ++i)
