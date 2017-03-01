@@ -34,7 +34,8 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
         {
             if (currCatID != -1)
             {
-                retVal.push_back(new MocapAnimation(currCatID,currentPoses));
+                int id = retVal.size();
+                retVal.push_back(new MocapAnimation(currCatID,currentPoses,id));
                 currentPoses.clear();
             }
 
@@ -58,7 +59,8 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
 
     if (! currentPoses.empty())
     {
-        retVal.push_back(new MocapAnimation(currCatID,currentPoses));
+        int id = retVal.size();
+        retVal.push_back(new MocapAnimation(currCatID,currentPoses,id));
     }
 
 

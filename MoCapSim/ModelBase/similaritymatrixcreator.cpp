@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QtConcurrent>
 
 SimilarityMatrixCreator::SimilarityMatrixCreator()
 {
@@ -81,31 +82,36 @@ void SimilarityMatrixCreator::createMetricImage(const QVector<MocapAnimation *> 
     }
 }
 
-cv::Mat SimilarityMatrixCreator::createMatrix(QVector<MocapAnimation *> anims, MocapAnimation::SimilarityFunction function, bool allign)
+cv::Mat SimilarityMatrixCreator::createMatrix(QVector<MocapAnimation *> anims, MocapAnimation::SimilarityFunction function)
 {
     cv::Mat retVal(anims.size(), anims.size(), CV_32FC1);
 
+    for (int i = 0 ; i < anims.size(); ++i)
+    {
+        retVal.at<float>(i,i) = 0.0f;
+    }
+
     for (int i = 0; i < anims.size(); ++i)
     {
-        for (int j = 0; j <= i; ++j)
+        QVector<QPair<float,MocapAnimation*>> result =
+        QtConcurrent::blockingMapped<QVector<QPair<float,MocapAnimation*>>>
+                (anims.begin(),anims.begin() + i,std::bind(mapFun,std::placeholders::_1,anims[i],function));
+
+        for(int j = 0; j < result.size(); ++j)
         {
-            if (i == j)
-            {
-                retVal.at<float>(i,i) = 0.0;
-            }
-            else
-            {
-                retVal.at<float>(i,j) = retVal.at<float>(j,i) = function(*anims[i], *anims[j]);
-            }
+            retVal.at<float>(i,result[j].second->m_id) =
+            retVal.at<float>(result[j].second->m_id,i) = result[j].first;
         }
+
+        std::cout << "line " << i << std::endl;
     }
 
     return retVal;
 }
 
-void SimilarityMatrixCreator::createSimilarityImage(QVector<MocapAnimation*> anims, MocapAnimation::SimilarityFunction function, bool allign, QString imageDirectory, QString imageName)
+void SimilarityMatrixCreator::createSimilarityImage(QVector<MocapAnimation*> anims, MocapAnimation::SimilarityFunction function, QString imageDirectory, QString imageName)
 {
-    cv::Mat similarityMat = createMatrix(anims, function, allign);
+    cv::Mat similarityMat = createMatrix(anims, function);
 
     QString imagePath = imageDirectory + "/"+ imageName +".exr";
     saveMatrix(imagePath,similarityMat);
@@ -151,4 +157,9 @@ void SimilarityMatrixCreator::saveMatrix(QString path, cv::Mat matrix)
 cv::Mat SimilarityMatrixCreator::loadMatrix(QString path)
 {
     return cv::imread(path.toStdString(), CV_LOAD_IMAGE_UNCHANGED);
+}
+
+QPair<float, MocapAnimation *> SimilarityMatrixCreator::mapFun(MocapAnimation *it, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
+{
+    return QPair<float,MocapAnimation*>(function(*anim,*it),it);
 }

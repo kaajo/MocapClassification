@@ -141,6 +141,9 @@ float dominantPoints(const MocapAnimation &first,const MocapAnimation &second)
         }
     }
 
+    return (NUM_OF_NODES - intersectCounter)/100000.0f;
+
+    /*
     if (intersectCounter > 5)
     {
         return 0.0f;
@@ -148,6 +151,7 @@ float dominantPoints(const MocapAnimation &first,const MocapAnimation &second)
 
 
     return 100000.0f;
+    */
 }
 
 float pointDistance(const MocapAnimation &first,const MocapAnimation &second)
@@ -197,32 +201,6 @@ float pointDistanceAlligned(const MocapAnimation &first,const MocapAnimation &se
     assert(minError >= 0.0f);
 
     return minError/(float) size;
-}
-
-
-float discreteSpaceInTime(const MocapAnimation &first,const MocapAnimation &second)
-{
-    int size1 = first.size();
-
-    for(int i = 0; i < size1; ++i)
-    {
-        for(int j = 0; j < first[i].size(); ++j)
-        {
-
-        }
-    }
-
-    int size2 = second.size();
-
-    for(int i = 0; i < size2; ++i)
-    {
-        for(int j = 0; j < second[i].size(); ++j)
-        {
-
-        }
-    }
-
-    return 1.0;
 }
 
 float MDDTW(const MocapAnimation &first,const MocapAnimation &second)
@@ -282,7 +260,7 @@ float MDDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
     QVector<QVector<float>> mGamma(first.size(), QVector<float>(second.size(),1000000.0));
     mGamma[0][0] = 0.0;
 
-    int secSize =  std::max(second.size()/4, std::abs(first.size()-second.size()));
+    int secSize = std::max(second.size()/4, std::abs(first.size()-second.size()));
 
     for( int i = 1; i < first.size() -1; ++i )
     {
@@ -303,57 +281,41 @@ float MDDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
     return mGamma[first.size() - 2][second.size() - 2]/std::max(first.size(),second.size());
 }
 
-float MDDDTWNormOpt(const MocapAnimation &first,const MocapAnimation &second)
+float discreteVoxels(const MocapAnimation &first,const MocapAnimation &second)
 {
-    const int secSize = std::max(second.size()/4, std::abs(first.size()-second.size()));
+    auto firstVoxels = first.getVoxelMap();
+    auto secondVoxels = second.getVoxelMap();
 
-    QVector<QVector<float>> mGamma(first.size(), QVector<float>(secSize*2+3,1000000.0));
-    mGamma[0][0] = 0.0;
+    int missCounter = 0;
 
-    for (int i = 1; i < first.size() -1; ++i)
+    for (auto &x : firstVoxels.keys())
     {
-        const int maxJ = std::min(second.size() - 1, i+secSize);
-        int c = 1;
-        for (int j = std::max(1, i - secSize); j < maxJ; ++j, ++c)
+        for (auto &y : firstVoxels[x].keys())
         {
-            float cost = 0.0f;
-
-            for (int k = 0; k < NUM_OF_NODES; ++k)
+            for (auto &z : firstVoxels[x][y].keys())
             {
-                cost += (first[i][k] - second[j][k]).length();
-                cost += std::pow((first[i+1][k]-first[i-1][k]).length() - (second[j+1][k] - second[j-1][k]).length(),2);
+                missCounter += std::abs(firstVoxels[x][y][z] - secondVoxels[x][y][z]);
             }
-
-           mGamma[i][c] = cost + std::min({mGamma[i-1][c], mGamma[i][c-1], mGamma[i-1][c-1]});
         }
     }
 
-    return mGamma[first.size() - 2][secSize + 1]/std::max(first.size(),second.size());
+    firstVoxels = first.getVoxelMap();
+    secondVoxels = second.getVoxelMap();
+
+    for (auto &x : secondVoxels.keys())
+    {
+        for (auto &y : secondVoxels[x].keys())
+        {
+            for (auto &z : secondVoxels[x][y].keys())
+            {
+                missCounter += std::abs(firstVoxels[x][y][z] - secondVoxels[x][y][z]);
+            }
+        }
+    }
+
+    return missCounter/static_cast<float>((first.size() + second.size())*NUM_OF_NODES);
 }
 
 } //SimilarityFunctions
-
-namespace MetricFunctions {
-
-float nodeMovementQuantity(const MocapAnimation &anim, int nodeNum)
-{
-    if(nodeNum >= NUM_OF_NODES || nodeNum < 0)
-    {
-        qWarning() << "wrong node number";
-        return 0.0;
-    }
-
-    float retVal = 0.0f;
-
-    for (int i = 1; i < anim.size(); ++i)
-    {
-        retVal += (anim[i][nodeNum] - anim[i-1][nodeNum]).length();
-    }
-
-    return retVal;
-}
-
-} //MetricFunctions
-
 
 #endif // FUNCTIONS_H

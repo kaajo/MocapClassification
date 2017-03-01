@@ -2,8 +2,8 @@
 
 #include <QtConcurrentMap>
 
-MocapAnimation::MocapAnimation(int category, QVector<MocapPose> poses)
-    : m_posesInTime(poses), m_category(category)
+MocapAnimation::MocapAnimation(int category, QVector<MocapPose> poses, int id)
+    : m_posesInTime(poses), m_category(category), m_id(id)
 {
     computeMovementQuantity();
     computeVoxels();
@@ -100,6 +100,70 @@ MocapAnimation::Results MocapAnimation::getResults(const MocapAnimation::Results
     return results;
 }
 
+QVector<QPair<float, MocapAnimation*>> MocapAnimation::getDistance(const QVector<MocapAnimation*> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat)
+{
+    //optimisation - check if distance was computed before
+    QVector<MocapAnimation*> animsReduced;
+    QVector<QPair<float,MocapAnimation*>> distanceDone;
+    for (int i = 0; i < anims.size(); ++i)
+    {
+        if (i == index) continue;
+
+        if (distanceMat[i][index] >= std::numeric_limits<float>::max())
+        {
+            animsReduced.push_back(anims[i]);
+        }
+        else
+        {
+            distanceDone.push_back({distanceMat[i][index],anims[i]});
+        }
+    }
+
+    QVector<QPair<float,MocapAnimation*>> distance =
+            QtConcurrent::blockingMapped<QVector<QPair<float,MocapAnimation*>>>
+            (animsReduced.begin(), animsReduced.end(),std::bind(mapFun2,std::placeholders::_1,anims[index],function));
+
+    for (int j = 0; j < animsReduced.size(); ++j)
+    {
+        distanceMat[index][distance[j].second->m_id] =
+        distanceMat[distance[j].second->m_id][index] = distance[j].first;
+    }
+
+    distance += distanceDone;
+    return distance;
+}
+
+QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat)
+{
+    QVector<MocapAnimation*> resultsReduced;
+    QVector<QPair<float,MocapAnimation*>> resultsDone;
+
+    for (int i = 0; i < prevResults.size() && i < topn; ++i)
+    {
+        if (distanceMat[prevResults[i].second->m_id][index] >= std::numeric_limits<float>::max())
+        {
+            resultsReduced.push_back(prevResults[i].second);
+        }
+        else
+        {
+            resultsDone.push_back({distanceMat[prevResults[i].second->m_id][index],prevResults[i].second});
+        }
+    }
+
+    QVector<QPair<float,MocapAnimation*>> tmpRes =
+    QtConcurrent::blockingMapped<QVector<QPair<float,MocapAnimation*>>>
+            (resultsReduced.begin(),resultsReduced.end(),std::bind(mapFun2,std::placeholders::_1,anim,function));
+
+    for(int i = 0; i < tmpRes.size(); ++i)
+    {
+        distanceMat[index][tmpRes[i].second->m_id] =
+        distanceMat[tmpRes[i].second->m_id][index] = tmpRes[i].first;
+    }
+
+    tmpRes += resultsDone;
+    return tmpRes;
+}
+
 float MocapAnimation::getMetric(const MetricFunction function) const
 {
     return function(*this);
@@ -135,6 +199,11 @@ QPair<float,QPair<int,MocapAnimation*>> MocapAnimation::mapFun(const QPair<int,M
     return QPair<float,QPair<int,MocapAnimation*>>(function(*anim,*it.second),it);
 }
 
+QPair<float,MocapAnimation*> MocapAnimation::mapFun2(MocapAnimation *it,const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
+{
+    return QPair<float,MocapAnimation*>(function(*anim,*it),it);
+}
+
 void MocapAnimation::computeMovementQuantity()
 {
     for (size_t n = 0; n < 31; ++n)
@@ -150,6 +219,11 @@ void MocapAnimation::computeMovementQuantity()
     }
 }
 
+QMap<int, QMap<int, QMap<int, int> > > MocapAnimation::getVoxelMap() const
+{
+    return m_voxelMap;
+}
+
 void MocapAnimation::computeVoxels()
 {
     for (int i = 1; i < m_posesInTime.size(); ++i)
@@ -157,7 +231,7 @@ void MocapAnimation::computeVoxels()
         for (size_t n = 0; n < 31; ++n)
         {
             const QVector3D &pos = m_posesInTime[i][n];
-            QVector3D voxel(floor(pos.x()),floor(pos.y()),floor(pos.z()));
+            //QVector3D voxel(floor(pos.x()),floor(pos.y()),floor(pos.z()));
 
            ++m_voxelMap[floor(pos.x())][floor(pos.y())][floor(pos.z())];
         }

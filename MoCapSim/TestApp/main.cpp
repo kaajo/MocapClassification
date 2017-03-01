@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include "functions.h"
+#include "methodtester.h"
 
 #include <QApplication>
 
@@ -28,9 +29,6 @@ extern "C"
 int cuda_main(int argc, char *argv[],  std::vector<std::vector<std::vector<float3>>> anims);
 */
 
-//first is number of results from previous method, similarity function and set of "top N" results to print
-typedef std::tuple<int,MocapAnimation::SimilarityFunction,QVector<int>> FunctionProp;
-
 void printMethodError(int numOfResults, QVector<int> checkSet, QVector<float> output)
 {
     std::cout << "used " << numOfResults << " from previous method" << std::endl;
@@ -45,7 +43,7 @@ void printResult(int id, const MocapAnimation *const anim, const MocapAnimation:
 {
     if (anim->getRealCategory() == result.first().second->getRealCategory())
     {
-        std::cout << id << " MATCH!" << std::endl;
+        //std::cout << id << " MATCH!" << std::endl;
     }
     else
     {
@@ -126,13 +124,6 @@ void TestMethod(const QVector<MocapAnimation*> &anims,const QVector<FunctionProp
     }
 }
 
-template <class T, std::size_t N>
-ostream& operator<<(ostream& o, const std::array<T, N>& arr)
-{
-    copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
-    return o;
-}
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -156,7 +147,7 @@ int main(int argc, char *argv[])
 
 
     ModelFactory factory;
-    QVector<MocapAnimation*> anims = factory.load("/home/kaajo/Dokumenty/SDIPR/data/objects-annotations-specific-coords_normPOS.data");
+    QVector<MocapAnimation*> anims = factory.load("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data");
     w.setAnims(anims);
 
     /*
@@ -224,17 +215,28 @@ int main(int argc, char *argv[])
     std::cout <<  "elapsed : " << diff.count() << std::endl;
 
 */
-    /*
+/*
     TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementAbsoluteError,{1,5,10,15,20}),
                       FunctionProp(20,SimilarityFunctions::pointDistanceAlligned,{1,2,3})});
-    // 81.1514 %
-    */
+   1: 58.2516 %
+    5: 86.3539 %
+    10: 92.2388 %
+    15: 94.371 %
+    20: 95.6503 %
+    ______________
 
-    /*
+1: 81.2793 %
+2: 88.0597 %
+3: 90.4478 %
+
+*/
+
+
+/*
     TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementAbsoluteError,{1,2,5,10,15,20}),
                       FunctionProp(15,SimilarityFunctions::MDDDTW,{1,2,3})});
     //81.7484 % only
-    */
+*/
 
 /*
     int Top = 50;
@@ -252,20 +254,42 @@ int main(int argc, char *argv[])
     3: 93.7313 %
 */
 
-    //TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::dominantPoints,{100,300})}); //cca 70%
+/*
+    MethodTester::TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::discreteVoxels,{1,2,5,10,15,20,25,50,100,200})});
 
-    // TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::MDDDTWNorm,{1,2,3})}); 15. chyba
+1: 34.2857 %
+2: 65.5011 %
+5: 90.9595 %
+10: 95.9915 %
+15: 97.1855 %
+20: 97.7825 %
+25: 98.1237 %
+50: 98.806 %
+100: 99.3177 %
+200: 99.7015 %
+
+*/
+
+    SimilarityMatrixCreator creator;
+    creator.createSimilarityImage(anims,SimilarityFunctions::MDDDTWNorm,QDir::currentPath(),"MDDDTWNorm");
+
+
+/*
+    MethodTester::TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementAbsoluteError,{1,2,5,10,15,20,25,50}),
+                                    FunctionProp(100,SimilarityFunctions::discreteVoxels,{1,2,5,10,15,20,25,50,100})});
+*/
+    //MethodTester::TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::MDDDTWNorm,{1,2,3})});// 15. chyba
 
     /*
     TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementDominant,{1,5,10,15,20})});
     TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementAbsoluteError,{1,5,10,15,20})});
 */
 
-
+/*
     TestMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementAbsoluteError,{1,5,10,15,20}),
                       FunctionProp(1000,SimilarityFunctions::pointMovementAbsoluteError,{1,5,10,15,20})});
     // 81.1514 %
-
+*/
 
 
     return 0;//a.exec();

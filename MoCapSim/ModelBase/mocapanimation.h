@@ -51,10 +51,14 @@ public:
     typedef std::function<float(const MocapAnimation)> MetricFunction;
     typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 
-    MocapAnimation(int category,QVector<MocapPose> poses);
+    MocapAnimation(int category,QVector<MocapPose> poses, int id);
 
     static Results getResults(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
     static Results getResults(const Results &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+
+
+    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation *> > &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
 
     float getMetric(const MetricFunction function) const;
 
@@ -68,18 +72,23 @@ public:
 
     std::array<float,31> getMovementQuantity() const {return m_movementQuantity;}
 
+    int m_id = -1;
+    QMap<int, QMap<int, QMap<int, int> > > getVoxelMap() const;
+
 private:
+    static QPair<float,MocapAnimation*> mapFun2(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
     static QPair<float,QPair<int,MocapAnimation*>> mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
 
     std::array<float,31> m_movementQuantity;
     void computeMovementQuantity();
 
-    QHash<int,QHash<int,QHash<int,int>>> m_voxelMap;
+    QMap<int, QMap<int, QMap<int, int> > > m_voxelMap;
     void computeVoxels();
 
     QVector<MocapPose> m_posesInTime;
 
     int16_t m_category = -1;
+
 };
 
 #endif // MOCAPMODEL_H
