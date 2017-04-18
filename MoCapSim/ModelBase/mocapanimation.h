@@ -9,86 +9,121 @@
 
 #include <functional>
 
+#include <opencv2/core/core.hpp>
+
 /*
-    public static final int LANDMARK_ROOT_ID = 1;
-    public static final int LANDMARK_LHIPJOINT_ID = 2;
-    public static final int LANDMARK_LFEMUR_ID = 3;
-    public static final int LANDMARK_LTIBIA_ID = 4;
-    public static final int LANDMARK_LFOOT_ID = 5;
-    public static final int LANDMARK_LTOES_ID = 6;
-    public static final int LANDMARK_RHIPJOINT_ID = 7;
-    public static final int LANDMARK_RFEMUR_ID = 8;
-    public static final int LANDMARK_RTIBIA_ID = 9;
-    public static final int LANDMARK_RFOOT_ID = 10;
-    public static final int LANDMARK_RTOES_ID = 11;
-    public static final int LANDMARK_LOWERBACK_ID = 12;
-    public static final int LANDMARK_UPPERBACK_ID = 13;
-    public static final int LANDMARK_THORAX_ID = 14;
-    public static final int LANDMARK_LOWERNECK_ID = 15;
-    public static final int LANDMARK_UPPERNECK_ID = 16;
-    public static final int LANDMARK_HEAD_ID = 17;
-    public static final int LANDMARK_LCLAVICLE_ID = 18;
-    public static final int LANDMARK_LHUMERUS_ID = 19;
-    public static final int LANDMARK_LRADIUS_ID = 20;
-    public static final int LANDMARK_LWRIST_ID = 21;
-    public static final int LANDMARK_LHAND_ID = 22;
-    public static final int LANDMARK_LFINGERS_ID = 23;
-    public static final int LANDMARK_LTHUMB_ID = 24;
-    public static final int LANDMARK_RCLAVICLE_ID = 25;
-    public static final int LANDMARK_RHUMERUS_ID = 26;
-    public static final int LANDMARK_RRADIUS_ID = 27;
-    public static final int LANDMARK_RWRIST_ID = 28;
-    public static final int LANDMARK_RHAND_ID = 29;
-    public static final int LANDMARK_RFINGERS_ID = 30;
-    public static final int LANDMARK_RTHUMB_ID = 31;
- */
+template <typename T>
+T clip(const T& n, const T& lower, const T& upper) {
+  return std::max(lower, std::min(n, upper));
+}
+*/
 
 class MocapAnimation
 {
 public:
-    typedef QVector<QVector3D> MocapPose;
+    enum class NODE : int
+    {
+        ROOT = 1,
+        LHIPJOINT = 2,
+        LFEMUR = 3,
+        LTIBIA = 4,
+        LFOOT = 5,
+        LTOES = 6,
+        RHIPJOINT = 7,
+        RFEMUR = 8,
+        RTIBIA = 9,
+        RFOOT = 10,
+        RTOES = 11,
+        LOWERBACK = 12,
+        UPPERBACK = 13,
+        THORAX = 14,
+        LOWERNECK = 15,
+        UPPERNECK = 16,
+        HEAD = 17,
+        LCLAVICLE = 18,
+        LHUMERUS = 19,
+        LRADIUS = 20,
+        LWRIST = 21,
+        LHAND = 22,
+        LFINGERS = 23,
+        LTHUMB = 24,
+        RCLAVICLE = 25,
+        RHUMERUS = 26,
+        RRADIUS = 27,
+        RWRIST = 28,
+        RHAND = 29,
+        RFINGERS = 30,
+        RTHUMB = 31
+    };
+
+    typedef QVector<QVector3D> MocapFrame;
     typedef std::function<float(const MocapAnimation,const MocapAnimation)> SimilarityFunction;
     typedef std::function<float(const MocapAnimation)> MetricFunction;
     typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 
-    MocapAnimation(int category,QVector<MocapPose> poses, int id);
+    MocapAnimation(int category,QVector<MocapFrame> poses, int id);
 
-    static Results getResults(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
-    static Results getResults(const Results &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+    int getId() const {return m_id;}
+    int frames() const {return m_posesInTime.cols;}
+    int16_t getRealCategory() const {return m_categoryId;}
 
+    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat);
+    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation *> > &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat);
 
-    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
-    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation *> > &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, QVector<QVector<float> > &distanceMat);
+    float getMetric(const MetricFunction function) const {return function(*this);}
 
-    float getMetric(const MetricFunction function) const;
+    inline const cv::Vec3f& operator()(int node, int frame) const
+    {
+        assert(node >= 0);
+        assert(frame >= 0);
+        assert(node < m_posesInTime.rows);
+        assert(frame < m_posesInTime.cols);
 
-    int size() const {return m_posesInTime.size();}
+        return m_posesInTime.at<cv::Vec3f>(node,frame);
+    }
+    inline const cv::Mat operator()(int node) const
+    {
+        assert(node >= 0);
+        assert(node < m_posesInTime.rows);
 
-    const MocapPose operator[](int position) const;
-
-    int16_t getRealCategory() const;
-
-    QVector<MocapPose> getPosesInTime() const;
+        return m_posesInTime.row(node);
+    }
 
     std::array<float,31> getMovementQuantity() const {return m_movementQuantity;}
+    std::array<cv::Vec3f, 31> getAxisMovementQuantity() const {return m_axisMovementQuantity;}
 
-    int m_id = -1;
-    QMap<int, QMap<int, QMap<int, int> > > getVoxelMap() const;
+    QMap<int, QMap<int,QMap<int,int>>> getVoxelMap() const {return m_voxelMap;}
+    std::vector<cv::Mat> getAxisFourierDescriptor() const {return m_axisfd;}
+    std::vector<cv::Mat> getDFCFourierDescriptor() const {return m_distanceFromCenterFd;}
 
 private:
     static QPair<float,MocapAnimation*> mapFun2(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
     static QPair<float,QPair<int,MocapAnimation*>> mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
 
+    const int m_id = -1;
+
+    /**
+     * @brief first coord NODE id, second frame id
+     */
+    cv::Mat m_posesInTime;
+
+    int16_t m_categoryId = -1;
+
+    //////////////////
     std::array<float,31> m_movementQuantity;
     void computeMovementQuantity();
+
+    std::array<cv::Vec3f,31> m_axisMovementQuantity;
+    void computeAxisMovementQuantity();
 
     QMap<int, QMap<int, QMap<int, int> > > m_voxelMap;
     void computeVoxels();
 
-    QVector<MocapPose> m_posesInTime;
+    std::vector<cv::Mat> m_axisfd;
+    void computeAxisFourierDescriptors();
 
-    int16_t m_category = -1;
-
+    std::vector<cv::Mat> m_distanceFromCenterFd;
+    void computeDFCFourierDescriptors();
 };
 
 #endif // MOCAPMODEL_H

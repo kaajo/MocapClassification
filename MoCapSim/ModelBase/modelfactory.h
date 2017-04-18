@@ -15,7 +15,7 @@ public:
     void save(const QString &path, const QVector<MocapAnimation*> anims);
 
 private:
-    MocapAnimation::MocapPose parseCoordsLine(const QString &line);
+    MocapAnimation::MocapFrame parseCoordsLine(const QString &line);
 };
 
 #endif // MODELBASE_H

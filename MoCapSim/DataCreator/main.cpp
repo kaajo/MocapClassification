@@ -17,11 +17,12 @@ int main(int /*argc*/, char *argv[])
 
     SimilarityMatrixCreator creator;
     //creator.createCategoryImage(anims);
-
+/*
     for (int i = 1; i < anims[0][0][0].size(); ++i)
     {
         creator.createMetricImage(anims, std::bind(MetricFunctions::nodeMovementQuantity, std::placeholders::_1, i), argv[1], QString("nodeMovementQuantity") + QString::number(i));
     }
+    */
 
     //creator.createSimilarityImage(anims, SimilarityFunctions::pointDist, false);
 

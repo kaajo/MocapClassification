@@ -18,11 +18,11 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
 
     if(!file.isOpen())
     {
-        qWarning() << "could not load animations: " << file.error();
+        qWarning() << "could not load animations: " << file.errorString();
         return retVal;
     }
 
-    QVector<MocapAnimation::MocapPose> currentPoses;
+    QVector<MocapAnimation::MocapFrame> currentPoses;
     int currCatID = -1;
 
     QTextStream in(&file);
@@ -63,20 +63,19 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
         retVal.push_back(new MocapAnimation(currCatID,currentPoses,id));
     }
 
-
     return retVal;
 }
 
 void ModelFactory::save(const QString &path, const QVector<MocapAnimation *> anims)
 {
-
+    //TODO
 }
 
-MocapAnimation::MocapPose ModelFactory::parseCoordsLine(const QString &line)
+MocapAnimation::MocapFrame ModelFactory::parseCoordsLine(const QString &line)
 {
     QStringList coordsList = line.split(";", QString::SkipEmptyParts);
 
-    MocapAnimation::MocapPose retVal;
+    MocapAnimation::MocapFrame retVal;
 
     for (int i = 0; i < coordsList.size(); ++i)
     {

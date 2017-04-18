@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui 3dcore 3drender 3dextras concurrent
+QT       += core gui concurrent 3dextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QMAKE_CXXFLAGS += -std=c++11 -pedantic -Wall -Wextra -march=native -O2
+QMAKE_CXXFLAGS += -std=c++1y -pedantic -Wall -Wextra -march=native
 
 TARGET = TestApp
 TEMPLATE = app
@@ -20,16 +20,10 @@ OBJECTS_DIR = release/obj
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-        dbscan.cpp \
-        validator.cpp \
-        clustering.cpp \
     methodtester.cpp \
     result.cpp
 
 HEADERS  += mainwindow.h \
-         dbscan.h \
-         validator.h \
-        clustering.h \
     functions.h \
     methodtester.h \
     result.h
@@ -51,6 +45,12 @@ else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PW
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/debug/ModelBase.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a
 
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Visualization/release/ -lVisualization
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Visualization/debug/ -lVisualization
+else:unix: LIBS += -L$$OUT_PWD/../Visualization/ -lVisualization
+
+INCLUDEPATH += $$PWD/../Visualization
+DEPENDPATH += $$PWD/../Visualization
 
 #CUDA_SOURCES += cuda_code.cu general_metrics.cu
 #CUDA_DIR = /usr/local/cuda-7.5

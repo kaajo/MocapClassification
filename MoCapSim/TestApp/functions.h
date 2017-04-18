@@ -85,6 +85,43 @@ float pointMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
     return sqrtf(error);
 }
 
+float pointMovementCorrelation(const MocapAnimation &first,const MocapAnimation &second)
+{
+    auto metrics1 = first.getMovementQuantity();
+    auto metrics2 = second.getMovementQuantity();
+
+    cv::Mat pnts1, pnts2;
+
+    pnts1.create(1, metrics1.size()+4,CV_32FC1);
+    pnts2.create(1, metrics2.size()+4,CV_32FC1);
+
+    for (size_t i = 0; i < metrics1.size(); ++i)
+    {
+        pnts1.at<float>(i) = metrics1[i];
+        pnts2.at<float>(i) = metrics2[i];
+    }
+
+    auto maq1 = first.getAxisMovementQuantity();
+    cv::Vec3f sumAxis1 = std::accumulate(maq1.begin(),maq1.end(),cv::Vec3f(0.0f,0.0f,0.0f));
+
+    pnts1.at<float>(metrics1.size()) = sumAxis1[0];
+    pnts1.at<float>(metrics1.size()+1) = sumAxis1[1];
+    pnts1.at<float>(metrics1.size()+2) = sumAxis1[2];
+    pnts1.at<float>(metrics1.size()+3) = first.frames();
+
+    auto maq2 = second.getAxisMovementQuantity();
+    cv::Vec3f sumAxis2 = std::accumulate(maq2.begin(),maq2.end(),cv::Vec3f(0.0f,0.0f,0.0f));
+
+    pnts2.at<float>(metrics2.size()) = sumAxis2[0];
+    pnts2.at<float>(metrics2.size()+1) = sumAxis2[1];
+    pnts2.at<float>(metrics2.size()+2) = sumAxis2[2];
+    pnts2.at<float>(metrics2.size()+3) = second.frames();
+
+    double retVal = std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR) , cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR));
+
+    return std::fabs(retVal);
+}
+
 float totalMovementRelativeError(const MocapAnimation &first,const MocapAnimation &second)
 {
     auto metrics1 = first.getMovementQuantity();
@@ -158,13 +195,13 @@ float pointDistance(const MocapAnimation &first,const MocapAnimation &second)
 {
     float error = 0.0;
 
-    int size = (first.size() < second.size()) ? first.size() : second.size();
+    int size = (first.frames() < second.frames()) ? first.frames() : second.frames();
 
     for(int i = 0; i < size; ++i)
     {
         for(int j = 0; j < 31; ++j)
         {
-            error += (first[i][j] - second[i][j]).length();
+            error += cv::norm(first(j,i) - second(j,i));
         }
     }
 
@@ -178,7 +215,7 @@ float pointDistanceAlligned(const MocapAnimation &first,const MocapAnimation &se
 {
     float minError = std::numeric_limits<float>::max();
 
-    int size = (first.size() > second.size()) ? first.size() : second.size();
+    int size = (first.frames() > second.frames()) ? first.frames() : second.frames();
 
     for (int a = -20; a < 20; ++a)
     {
@@ -188,7 +225,7 @@ float pointDistanceAlligned(const MocapAnimation &first,const MocapAnimation &se
         {
             for(int j = 0; j < 31; ++j)
             {
-                error += (first[i+a][j] - second[i][j]).length();
+                error += cv::norm(first(j,i+a) - second(j,i));
             }
         }
 
@@ -205,80 +242,119 @@ float pointDistanceAlligned(const MocapAnimation &first,const MocapAnimation &se
 
 float MDDTW(const MocapAnimation &first,const MocapAnimation &second)
 {
-    QVector<QVector<float>> mGamma(first.size(), QVector<float>(second.size(),10000.0));
-
+    QVector<QVector<float>> mGamma(first.frames(), QVector<float>(second.frames(),1000000.0));
     mGamma[0][0] = 0.0;
 
-    int secSize =  std::max(second.size()/2, std::abs(first.size()-second.size()));
+    const int secSize = std::max(second.frames()/4, std::abs(first.frames()-second.frames()));
 
-    for( int i = 1; i < first.size(); i++ )
+    for( int i = 1; i < first.frames() -1; ++i )
     {
-        for( int j = std::max(1, i - secSize); j < std::min(second.size(), i+secSize); j++ )
+        const int maxj = std::min(second.frames() - 1, i+secSize);
+
+        for( int j = std::max(1, i - secSize); j < maxj; ++j )
         {
             float cost = 0.0f;
 
             for (int k = 0; k < NUM_OF_NODES; ++k)
             {
-                cost += (first[i][k] - first[j][k]).length();
+                cost += cv::norm(first(k,i) - second(k,j));
+                cost += std::pow(cv::norm(first(k,i+1)-first(k,i-1)) -
+                                 cv::norm(second(k,j+1)-second(k,j-1)),2);
             }
 
             mGamma[i][j] = cost + std::min({mGamma[i-1][j], mGamma[i][j-1], mGamma[i-1][j-1]});
         }
     }
-    return mGamma[first.size() - 1][second.size() - 1] / std::max(first.size(),second.size());
+
+    return mGamma[first.frames() - 1][second.frames() - 1];
+}
+
+float MDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
+{
+    QVector<QVector<float>> mGamma(first.frames(), QVector<float>(second.frames(),1000000.0));
+    mGamma[0][0] = 0.0;
+
+    const int secSize = std::max(second.frames()/4, std::abs(first.frames()-second.frames()));
+
+    for( int i = 1; i < first.frames() -1; ++i )
+    {
+        const int maxj = std::min(second.frames() - 1, i+secSize);
+
+        for( int j = std::max(1, i - secSize); j < maxj; ++j )
+        {
+            float cost = 0.0f;
+
+            for (int k = 0; k < NUM_OF_NODES; ++k)
+            {
+                cost += cv::norm(first(k,i) - second(k,j));
+                cost += std::pow(cv::norm(first(k,i+1)-first(k,i-1)) -
+                                 cv::norm(second(k,j+1)-second(k,j-1)),2);
+            }
+
+            mGamma[i][j] = cost + std::min({mGamma[i-1][j], mGamma[i][j-1], mGamma[i-1][j-1]});
+        }
+    }
+
+    return mGamma[first.frames() - 1][second.frames() - 1] / std::max(first.frames(),second.frames());
 }
 
 //http://msp.ewi.tudelft.nl/sites/default/files/DTW-vASCI.pdf
 float MDDDTW(const MocapAnimation &first,const MocapAnimation &second)
 {
-    QVector<QVector<float>> mGamma(first.size(), QVector<float>(second.size(),1000000.0));
+    QVector<QVector<float>> mGamma(first.frames(), QVector<float>(second.frames(),1000000.0));
     mGamma[0][0] = 0.0;
 
-    int secSize =  std::max(second.size()/4, std::abs(first.size()-second.size()));
+    const int secSize = std::max(second.frames()/4, std::abs(first.frames()-second.frames()));
 
-    for( int i = 1; i < first.size() -1; ++i )
+    for( int i = 1; i < first.frames() -1; ++i )
     {
-        for( int j = std::max(1, i - secSize); j < std::min(second.size() - 1, i+secSize); ++j )
+        const int maxj = std::min(second.frames() - 1, i+secSize);
+
+        for( int j = std::max(1, i - secSize); j < maxj; ++j )
         {
             float cost = 0.0f;
 
             for (int k = 0; k < NUM_OF_NODES; ++k)
             {
-                cost += (first[i][k] - second[j][k]).length();
-                cost += std::pow((first[i+1][k]-first[i-1][k]).length() - (second[j+1][k] - second[j-1][k]).length(),2);
+                cost += cv::norm(first(k,i) - second(k,j));
+                cost += std::pow(cv::norm(first(k,i+1)-first(k,i-1)) -
+                                 cv::norm(second(k,j+1)-second(k,j-1)),2);
             }
 
             mGamma[i][j] = cost + std::min({mGamma[i-1][j], mGamma[i][j-1], mGamma[i-1][j-1]});
         }
     }
 
-    return mGamma[first.size() - 2][second.size() - 2];
+    return mGamma[first.frames() - 2][second.frames() - 2];
 }
 
 float MDDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
 {
-    QVector<QVector<float>> mGamma(first.size(), QVector<float>(second.size(),1000000.0));
-    mGamma[0][0] = 0.0;
+    cv::Mat mGamma(first.frames(), second.frames(), CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+    mGamma.at<float>(0,0) = 0.0f;
 
-    int secSize = std::max(second.size()/4, std::abs(first.size()-second.size()));
+    const int secSize = std::max(second.frames()/4, std::abs(first.frames()-second.frames()));
 
-    for( int i = 1; i < first.size() -1; ++i )
+    for(int i = 1; i < first.frames() -1; ++i)
     {
-        for( int j = std::max(1, i - secSize); j < std::min(second.size() - 1, i+secSize); ++j )
+        const int maxj = std::min(second.frames() - 1, i+secSize);
+
+        for(int j = std::max(1, i - secSize); j < maxj; ++j)
         {
             float cost = 0.0f;
 
             for (int k = 0; k < NUM_OF_NODES; ++k)
             {
-                cost += (first[i][k] - second[j][k]).length();
-                cost += std::pow((first[i+1][k]-first[i-1][k]).length() - (second[j+1][k] - second[j-1][k]).length(),2);
+                cost += cv::norm(first(k,i) - second(k,j));
+                cost += std::pow(cv::norm(first(k,i+1)-first(k,i-1)) -
+                                 cv::norm(second(k,j+1)-second(k,j-1)),2);
             }
 
-            mGamma[i][j] = cost + std::min({mGamma[i-1][j], mGamma[i][j-1], mGamma[i-1][j-1]});
+            mGamma.at<float>(i,j) = cost + std::min({mGamma.at<float>(i-1,j), mGamma.at<float>(i,j-1), mGamma.at<float>(i-1,j-1)});
         }
     }
 
-    return mGamma[first.size() - 2][second.size() - 2]/std::max(first.size(),second.size());
+    return mGamma.at<float>(first.frames() - 2,second.frames() - 2)/std::max(first.frames(),second.frames());
 }
 
 float discreteVoxels(const MocapAnimation &first,const MocapAnimation &second)
@@ -313,7 +389,63 @@ float discreteVoxels(const MocapAnimation &first,const MocapAnimation &second)
         }
     }
 
-    return missCounter/static_cast<float>((first.size() + second.size())*NUM_OF_NODES);
+    return missCounter/static_cast<float>((first.frames() + second.frames())*NUM_OF_NODES);
+}
+
+float fourierDescriptors(const MocapAnimation &first,const MocapAnimation &second)
+{
+    auto fdFirst = first.getAxisFourierDescriptor();
+    auto fdSecond = second.getAxisFourierDescriptor();
+
+    float error = 0.0f;
+
+    for (size_t i = 0; i < fdFirst.size(); ++i)
+    {
+        for (int j = 0; j < fdFirst[0].rows; ++j)
+        {
+            error += cv::norm(fdFirst[i].row(j),fdSecond[i].row(j),cv::NORM_L2SQR);
+        }
+    }
+
+    return error;
+}
+
+float pointCorrelationVariance(const MocapAnimation &first,const MocapAnimation &second)
+{
+    for (size_t i = 0; i < NUM_OF_NODES; ++i)
+    {
+        auto fCol = first(i);
+        auto sCol = second(i);
+
+        if (fCol.cols > sCol.cols)
+        {
+            int dif = fCol.cols - sCol.cols;
+            fCol = fCol(cv::Rect(0,dif/2,1,sCol.cols));
+        }
+        else
+        {
+            int dif = sCol.cols - fCol.cols;
+            sCol = sCol(cv::Rect(0,dif/2,1,fCol.cols));
+        }
+
+        std::vector<cv::Mat> f,s;
+        cv::split(fCol,f);
+        cv::split(sCol,s);
+
+        for (size_t j = 0; j < f.size(); ++j)
+        {
+            cv::Mat fb,sb;
+
+            cv::copyMakeBorder(f[i],fb,1,1,1,1,cv::BORDER_CONSTANT,cv::Scalar(0.0f));
+            cv::copyMakeBorder(s[i],sb,1,1,1,1,cv::BORDER_CONSTANT,cv::Scalar(0.0f));
+
+            cv::Point bestMatch = cv::phaseCorrelate(fb,sb);
+
+            std::cout << bestMatch << std::endl;
+        }
+    }
+
+    return 0.0f;
 }
 
 } //SimilarityFunctions

@@ -3,19 +3,23 @@
 
 #include "result.h"
 
+#include <opencv2/core/core.hpp>
+
 #include <QVector>
 
 #include <ostream>
 
-//first is number of results from previous method, similarity function and set of "top N" results to print
-typedef std::tuple<int,MocapAnimation::SimilarityFunction,QVector<int>> FunctionProp;
+// int - number of results from previous method, similarity function, set of "top N" results to print
+typedef std::tuple<int,MocapAnimation::SimilarityFunction,cv::Mat,QVector<int>> FunctionProp;
+typedef std::tuple<float,cv::Mat> WeightedProp;
 
 class MethodTester
 {
 public:
     MethodTester();
 
-    static void TestMethod(const QVector<MocapAnimation*> &anims,const QVector<FunctionProp> &functions);
+    static void testMethod(const QVector<MocapAnimation*> &anims,const QVector<FunctionProp> &functions);
+    static float testMethod(const QVector<MocapAnimation*> &anims, const QVector<WeightedProp> &functions);
 
     static float checkResultsError(const QVector<Result> &prevResults, const int numOfResults);
 

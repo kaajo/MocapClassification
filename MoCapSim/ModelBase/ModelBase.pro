@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += opengl concurrent
+QT += opengl concurrent
 
-QMAKE_CXXFLAGS += -std=c++11 -pedantic -Wall -Wextra
+QMAKE_CXXFLAGS += -std=c++1y -pedantic -Wall -Wextra -march=native
 
 TARGET = ModelBase
 TEMPLATE = lib
@@ -15,13 +15,11 @@ CONFIG += staticlib
 SOURCES += \
     modelfactory.cpp \
     mocapanimation.cpp \
-    mocapstats.cpp \
     similaritymatrixcreator.cpp
 
 HEADERS += \
     modelfactory.h \
     mocapanimation.h \
-    mocapstats.h \
     similaritymatrixcreator.h
 
 unix {

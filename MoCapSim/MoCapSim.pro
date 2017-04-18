@@ -3,4 +3,8 @@ TEMPLATE = subdirs
 SUBDIRS += \
     ModelBase \
     TestApp \
-    DataCreator
+    DataCreator \
+    Visualization
+
+TestApp.depends = Visualization
+Visualization.depends = ModelBase

@@ -99,8 +99,8 @@ cv::Mat SimilarityMatrixCreator::createMatrix(QVector<MocapAnimation *> anims, M
 
         for(int j = 0; j < result.size(); ++j)
         {
-            retVal.at<float>(i,result[j].second->m_id) =
-            retVal.at<float>(result[j].second->m_id,i) = result[j].first;
+            retVal.at<float>(i,result[j].second->getId()) =
+            retVal.at<float>(result[j].second->getId(),i) = result[j].first;
         }
 
         std::cout << "line " << i << std::endl;

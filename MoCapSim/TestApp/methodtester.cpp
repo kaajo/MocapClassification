@@ -5,11 +5,16 @@ MethodTester::MethodTester()
 
 }
 
-void MethodTester::TestMethod(const QVector<MocapAnimation*> &anims, const QVector<FunctionProp> &functions)
+void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVector<FunctionProp> &functions)
 {
     QVector<Result> results,resultsTmp;
     QVector<float> error;
-    QVector<QVector<float>> distMatrix(anims.size(),QVector<float>(anims.size(),std::numeric_limits<float>::max()));
+    cv::Mat distMatrix(anims.size(),anims.size(),CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+
+    if (!std::get<2>(functions[0]).empty())
+    {
+        distMatrix = std::get<2>(functions[0]);
+    }
 
     //1st function (source is anims)
     for (int i = 0; i < anims.size(); ++i)
@@ -22,17 +27,22 @@ void MethodTester::TestMethod(const QVector<MocapAnimation*> &anims, const QVect
         r.printResult(anims[i],r);
     }
 
-    for (const int noRes : std::get<2>(functions[0]))
+    for (const int noRes : std::get<3>(functions[0]))
     {
         error.push_back(checkResultsError(results,noRes));
     }
 
-    printMethodError(std::get<0>(functions[0]),std::get<2>(functions[0]),error);
+    printMethodError(std::get<0>(functions[0]),std::get<3>(functions[0]),error);
     error.clear();
 
     for (int f = 1; f < functions.size(); ++f)
     {
-        distMatrix = QVector<QVector<float>>(anims.size(),QVector<float>(anims.size(),std::numeric_limits<float>::max()));
+        distMatrix = cv::Mat(anims.size(),anims.size(),CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+
+        if (!std::get<2>(functions[f]).empty())
+        {
+            distMatrix = std::get<2>(functions[f]);
+        }
 
         for (int i = 0; i < anims.size(); ++i)
         {
@@ -46,14 +56,49 @@ void MethodTester::TestMethod(const QVector<MocapAnimation*> &anims, const QVect
         results = resultsTmp;
         resultsTmp.clear();
 
-        for (const int noRes : std::get<2>(functions[f]))
+        for (const int noRes : std::get<3>(functions[f]))
         {
             error.push_back(checkResultsError(results,noRes));
         }
 
-        printMethodError(std::get<0>(functions[f]),std::get<2>(functions[f]),error);
+        printMethodError(std::get<0>(functions[f]),std::get<3>(functions[f]),error);
         error.clear();
     }
+}
+
+float MethodTester::testMethod(const QVector<MocapAnimation *> &anims, const QVector<WeightedProp> &functions)
+{
+    cv::Mat mergeMat = std::get<0>(functions[0]) * std::get<1>(functions[0]);
+    for (int f = 1; f < functions.size(); ++f)
+    {
+        if (std::get<0>(functions[f]) == 0.0f) continue;
+
+        cv::multiply(mergeMat,std::get<1>(functions[f]),mergeMat,std::get<0>(functions[f]));
+    }
+
+    QVector<Result> results;
+
+    for (int i = 0; i < anims.size(); ++i)
+    {
+        QVector<QPair<float,MocapAnimation*>> res;
+
+        for (int j = 0; j < anims.size(); ++j)
+        {
+            if (i == j) continue;
+
+            res.push_back({mergeMat.at<float>(i,j),anims[j]});
+        }
+
+        Result r(anims[i],res);
+
+        results.push_back(r);
+    }
+
+    float error = checkResultsError(results,{1});
+
+    printMethodError(anims.size(),{1},{error});
+
+    return error;
 }
 
 float MethodTester::checkResultsError(const QVector<Result> &prevResults, const int numOfResults)

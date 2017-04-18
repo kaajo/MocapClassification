@@ -21,12 +21,12 @@ public:
     {
         if (anim->getRealCategory() == result.m_distance.first().second->getRealCategory())
         {
-            std::cout << anim->m_id << " MATCH!" << std::endl;
+            std::cout << anim->getId() << " MATCH!" << std::endl;
         }
         else
         {
-            std::cout << anim->m_id << " MISS:  first category: " << anim->getRealCategory() << " second: "
-                      << result.m_distance.first().second->getRealCategory() << " id: " << result.m_distance.first().second->m_id << std::endl;
+            std::cout << anim->getId() << " MISS:  first category: " << anim->getRealCategory() << " second: "
+                      << result.m_distance.first().second->getRealCategory() << " id: " << result.m_distance.first().second->getId() << std::endl;
         }
 
     }
