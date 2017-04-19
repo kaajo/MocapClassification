@@ -2,6 +2,7 @@
 #define METHODTESTER_H
 
 #include "result.h"
+#include "mocapanimation.h"
 
 #include <opencv2/core/core.hpp>
 
@@ -24,6 +25,9 @@ public:
     static float checkResultsError(const QVector<Result> &prevResults, const int numOfResults);
 
     static void printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output);
+
+private:
+
 };
 
 template <class T, std::size_t N>

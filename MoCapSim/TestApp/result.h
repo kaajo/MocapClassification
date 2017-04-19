@@ -12,24 +12,24 @@ class Result
 {
 public:
     Result(){}
-    Result(MocapAnimation *anim, QVector<QPair<float,MocapAnimation*>> res);
+    Result(const MocapAnimation *anim,const QVector<QPair<float,MocapAnimation*>> res);
 
-    MocapAnimation *m_animiation = nullptr;
+    void printResult();
+
+    ///stats
+    bool isCategoryMatched() const {return m_animation->getRealCategory() == m_distance.first().second->getRealCategory();}
+    bool isCategoryMatched(const int noRes) const;
+
+    inline size_t noMatched(const int noRes);
+    inline int firstMatched();
+
+    ///getters/setters
+    inline const MocapAnimation* animation() const {return m_animation;}
+    inline const QVector<QPair<float, MocapAnimation*>>& distance() const {return m_distance;}
+
+private:
+    const MocapAnimation *m_animation = nullptr;
     QVector<QPair<float,MocapAnimation*>> m_distance;
-
-    void printResult(const MocapAnimation *const anim, const Result &result)
-    {
-        if (anim->getRealCategory() == result.m_distance.first().second->getRealCategory())
-        {
-            std::cout << anim->getId() << " MATCH!" << std::endl;
-        }
-        else
-        {
-            std::cout << anim->getId() << " MISS:  first category: " << anim->getRealCategory() << " second: "
-                      << result.m_distance.first().second->getRealCategory() << " id: " << result.m_distance.first().second->getId() << std::endl;
-        }
-
-    }
 
 };
 

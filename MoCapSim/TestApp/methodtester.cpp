@@ -9,33 +9,24 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
 {
     QVector<Result> results,resultsTmp;
     QVector<float> error;
-    cv::Mat distMatrix(anims.size(),anims.size(),CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+    cv::Mat distMatrix;
 
-    if (!std::get<2>(functions[0]).empty())
-    {
-        distMatrix = std::get<2>(functions[0]);
-    }
-
-    //1st function (source is anims)
     for (int i = 0; i < anims.size(); ++i)
     {
-        auto res = MocapAnimation::getDistance(anims,i,std::get<1>(functions[0]),distMatrix);
+        QVector<QPair<float,MocapAnimation*>> res;
+
+        for (int j = 0; j < anims.size(); ++j)
+        {
+            if (j == i) continue;
+
+            res.push_back({0.0f,anims[j]});
+        }
 
         Result r(anims[i],res);
         results.push_back(r);
-
-        r.printResult(anims[i],r);
     }
 
-    for (const int noRes : std::get<3>(functions[0]))
-    {
-        error.push_back(checkResultsError(results,noRes));
-    }
-
-    printMethodError(std::get<0>(functions[0]),std::get<3>(functions[0]),error);
-    error.clear();
-
-    for (int f = 1; f < functions.size(); ++f)
+    for (int f = 0; f < functions.size(); ++f)
     {
         distMatrix = cv::Mat(anims.size(),anims.size(),CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
 
@@ -46,12 +37,12 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
 
         for (int i = 0; i < anims.size(); ++i)
         {
-            auto res = MocapAnimation::getDistance(results[i].m_distance,std::get<0>(functions[f]),i,anims[i], std::get<1>(functions[f]),distMatrix);
+            auto res = anims[i]->getDistance(results[i].distance(),std::get<0>(functions[f]), std::get<1>(functions[f]),distMatrix);
 
             Result r(anims[i],res);
 
             resultsTmp.push_back(r);
-            r.printResult(anims[i],r);
+            r.printResult();
         }
         results = resultsTmp;
         resultsTmp.clear();
@@ -107,14 +98,9 @@ float MethodTester::checkResultsError(const QVector<Result> &prevResults, const 
 
     for (int i = 0; i < prevResults.size(); ++i)
     {
-        for (auto j = 0; j < numOfResults && j < prevResults[i].m_distance.size(); ++j)
+        if (prevResults[i].isCategoryMatched(numOfResults))
         {
-            if (prevResults[i].m_distance[j].second->getRealCategory() ==
-                    prevResults[i].m_animiation->getRealCategory())
-            {
-                ++trueCounter;
-                break;
-            }
+            ++trueCounter;
         }
     }
 

@@ -65,6 +65,14 @@ int main(int argc, char *argv[])
 
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementCorrelation,cv::Mat(),{1,2,5,10,15,20})});
 
+    /*
+    1: 64.1791 %
+    2: 77.3134 %
+    5: 92.5373 %
+    10: 96.2473 %
+    15: 97.8252 %
+    20: 98.2942 %
+    */
 
 /*
     float max = 0.0f;

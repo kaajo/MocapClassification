@@ -61,16 +61,13 @@ public:
     typedef std::function<float(const MocapAnimation)> MetricFunction;
     typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 
-    MocapAnimation(int category,QVector<MocapFrame> poses, int id);
+    MocapAnimation(const int id,const int category,const QVector<MocapFrame> poses);
 
     int getId() const {return m_id;}
     int frames() const {return m_posesInTime.cols;}
     int16_t getRealCategory() const {return m_categoryId;}
 
-    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<MocapAnimation *> &anims, const int index, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat);
-    static QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation *> > &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat);
-
-    float getMetric(const MetricFunction function) const {return function(*this);}
+    QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn,const MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat) const;
 
     inline const cv::Vec3f& operator()(int node, int frame) const
     {
@@ -91,23 +88,21 @@ public:
 
     std::array<float,31> getMovementQuantity() const {return m_movementQuantity;}
     std::array<cv::Vec3f, 31> getAxisMovementQuantity() const {return m_axisMovementQuantity;}
-
     QMap<int, QMap<int,QMap<int,int>>> getVoxelMap() const {return m_voxelMap;}
     std::vector<cv::Mat> getAxisFourierDescriptor() const {return m_axisfd;}
     std::vector<cv::Mat> getDFCFourierDescriptor() const {return m_distanceFromCenterFd;}
 
 private:
-    static QPair<float,MocapAnimation*> mapFun2(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
-    static QPair<float,QPair<int,MocapAnimation*>> mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
+    static QPair<float,MocapAnimation*> mapFun(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
 
     const int m_id = -1;
+
+    int16_t m_categoryId = -1;
 
     /**
      * @brief first coord NODE id, second frame id
      */
     cv::Mat m_posesInTime;
-
-    int16_t m_categoryId = -1;
 
     //////////////////
     std::array<float,31> m_movementQuantity;

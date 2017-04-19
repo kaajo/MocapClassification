@@ -47,41 +47,6 @@ void SimilarityMatrixCreator::createCategoryImage(const QVector<MocapAnimation *
     }
 }
 
-cv::Mat SimilarityMatrixCreator::createMatrix(const QVector<MocapAnimation *> &anims, MocapAnimation::MetricFunction function)
-{
-    cv::Mat retVal(1,anims.size(),CV_32FC1);
-
-    for (int i = 0; i < anims.size(); ++i)
-    {
-        retVal.at<float>(i) = anims[i]->getMetric(function);
-    }
-
-    return retVal;
-}
-
-void SimilarityMatrixCreator::createMetricImage(const QVector<MocapAnimation *> &anims, MocapAnimation::MetricFunction function, QString imageDirectory, QString imageName)
-{
-    cv::Mat metricMat = createMatrix(anims, function);
-
-    QString imagePath = imageDirectory + "/"+ imageName +".exr";
-    saveMatrix(imagePath,metricMat);
-
-    //test only
-    cv::Mat b = loadMatrix(imagePath);
-
-    if (cv::countNonZero(metricMat != b) == 0)
-    {
-        qInfo() << "Exported metric image is equal";
-    }
-    else
-    {
-        qWarning() << "Exported metric image is not equal";
-
-        std::cout << "exported = "<< std::endl << " "  << metricMat << std::endl << std::endl;
-        std::cout << "imported = "<< std::endl << " "  << b << std::endl << std::endl;
-    }
-}
-
 cv::Mat SimilarityMatrixCreator::createMatrix(QVector<MocapAnimation *> anims, MocapAnimation::SimilarityFunction function)
 {
     cv::Mat retVal(anims.size(), anims.size(), CV_32FC1);

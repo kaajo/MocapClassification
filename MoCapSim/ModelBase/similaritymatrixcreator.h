@@ -19,11 +19,6 @@ public:
 
     void createCategoryImage(const QVector<MocapAnimation *> &anims, QString imageDirectory = QDir::currentPath(), QString imageName = "category");
 
-    // 1xN matrix
-    cv::Mat createMatrix(const QVector<MocapAnimation *> &anims, MocapAnimation::MetricFunction function);
-
-    void createMetricImage(const QVector<MocapAnimation *> &anims, MocapAnimation::MetricFunction function, QString imageDirectory = QDir::currentPath(), QString imageName = "metric");
-
     // NxN matrix
     cv::Mat createMatrix(QVector<MocapAnimation*> anims, MocapAnimation::SimilarityFunction function);
 

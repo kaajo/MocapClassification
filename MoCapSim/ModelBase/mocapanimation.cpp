@@ -4,11 +4,11 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
-MocapAnimation::MocapAnimation(int category, QVector<MocapFrame> poses, int id)
-    : m_id(id), m_categoryId(category)
+MocapAnimation::MocapAnimation(const int id, const int category, const QVector<MocapFrame> poses) :
+    m_id(id),
+    m_categoryId(category),
+    m_posesInTime(poses[0].size(),poses.size(), CV_32FC3)
 {
-    m_posesInTime.create(poses[0].size(),poses.size(), CV_32FC3);
-
     for (int i = 0; i < poses.size(); ++i)
     {
         for (int j = 0; j < poses[0].size(); ++j)
@@ -24,88 +24,37 @@ MocapAnimation::MocapAnimation(int category, QVector<MocapFrame> poses, int id)
     computeDFCFourierDescriptors();
 }
 
-QVector<QPair<float, MocapAnimation*>> MocapAnimation::getDistance(const QVector<MocapAnimation*> &anims, const int index, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat)
-{
-    //optimisation - check if distance was computed before
-    QVector<MocapAnimation*> animsReduced;
-    QVector<QPair<float,MocapAnimation*>> distanceDone;
-    for (int i = 0; i < anims.size(); ++i)
-    {
-        if (i == index) continue;
-
-        if (distanceMat.at<float>(i,index) >= std::numeric_limits<float>::max())
-        {
-            animsReduced.push_back(anims[i]);
-        }
-        else
-        {
-            distanceDone.push_back({distanceMat.at<float>(i,index),anims[i]});
-/*
-            float a = distanceMat.at<float>(i,index);
-            float b = distanceMat.at<float>(index,i);
-            float c = function(*anims[index],*anims[i]);
-            float d = function(*anims[i],*anims[index]);
-
-            if ((std::fabs(a - d)) > 0.01)
-            {
-
-                qDebug() << a << b << c << d;
-            }
-            */
-        }
-    }
-
-    QVector<QPair<float,MocapAnimation*>> distance =
-            QtConcurrent::blockingMapped<QVector<QPair<float,MocapAnimation*>>>
-            (animsReduced.begin(), animsReduced.end(),std::bind(mapFun2,std::placeholders::_1,anims[index],function));
-
-    for (int j = 0; j < animsReduced.size(); ++j)
-    {
-        distanceMat.at<float>(index,distance[j].second->m_id) =
-                distanceMat.at<float>(distance[j].second->m_id,index) = distance[j].first;
-    }
-
-    distance += distanceDone;
-    return distance;
-}
-
-QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const int index, const MocapAnimation *anim, MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat)
+QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const SimilarityFunction function, cv::Mat &distanceMat) const
 {
     QVector<MocapAnimation*> resultsReduced;
     QVector<QPair<float,MocapAnimation*>> resultsDone;
 
     for (int i = 0; i < prevResults.size() && i < topn; ++i)
     {
-        if (distanceMat.at<float>(prevResults[i].second->m_id,index) >= std::numeric_limits<float>::max())
+        if (distanceMat.at<float>(prevResults[i].second->m_id,m_id) >= std::numeric_limits<float>::max())
         {
             resultsReduced.push_back(prevResults[i].second);
         }
         else
         {
-            resultsDone.push_back({distanceMat.at<float>(prevResults[i].second->m_id,index),prevResults[i].second});
+            resultsDone.push_back({distanceMat.at<float>(prevResults[i].second->m_id,m_id),prevResults[i].second});
         }
     }
 
     QVector<QPair<float,MocapAnimation*>> tmpRes =
             QtConcurrent::blockingMapped<QVector<QPair<float,MocapAnimation*>>>
-            (resultsReduced.begin(),resultsReduced.end(),std::bind(mapFun2,std::placeholders::_1,anim,function));
+            (resultsReduced.begin(),resultsReduced.end(),std::bind(mapFun,std::placeholders::_1,this,function));
 
     for(int i = 0; i < tmpRes.size(); ++i)
     {
-        distanceMat.at<float>(index,tmpRes[i].second->m_id) =
-                distanceMat.at<float>(tmpRes[i].second->m_id,index) = tmpRes[i].first;
+        distanceMat.at<float>(m_id,tmpRes[i].second->m_id) = distanceMat.at<float>(tmpRes[i].second->m_id,m_id) = tmpRes[i].first;
     }
 
     tmpRes += resultsDone;
     return tmpRes;
 }
 
-QPair<float,QPair<int,MocapAnimation*>> MocapAnimation::mapFun(const QPair<int,MocapAnimation*> it,const MocapAnimation*anim, MocapAnimation::SimilarityFunction function)
-{
-    return QPair<float,QPair<int,MocapAnimation*>>(function(*anim,*it.second),it);
-}
-
-QPair<float,MocapAnimation*> MocapAnimation::mapFun2(MocapAnimation *it,const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
+QPair<float,MocapAnimation*> MocapAnimation::mapFun(MocapAnimation *it,const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
 {
     return QPair<float,MocapAnimation*>(function(*anim,*it),it);
 }
@@ -133,9 +82,9 @@ void MocapAnimation::computeAxisMovementQuantity()
 
         for (int i = 1; i < m_posesInTime.cols; ++i)
         {
-           cv::Vec3f diff;
-           cv::absdiff(m_posesInTime.at<cv::Vec3f>(n,i), m_posesInTime.at<cv::Vec3f>(n,i-1),diff);
-           q += diff;
+            cv::Vec3f diff;
+            cv::absdiff(m_posesInTime.at<cv::Vec3f>(n,i), m_posesInTime.at<cv::Vec3f>(n,i-1),diff);
+            q += diff;
         }
 
         m_axisMovementQuantity[n] = q;
