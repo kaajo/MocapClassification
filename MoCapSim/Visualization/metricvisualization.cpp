@@ -129,11 +129,10 @@ void MetricVisualization::refreshMovementQuantityGraph()
         QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
 
         const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantity();
-        float sum = std::accumulate(mq.begin(), mq.end(), 0.0f);
 
         for (int j = 0; j < numOfPoints; ++j)
         {
-            *set <<  mq[j]/sum;
+            *set <<  mq[j];
         }
 
         m_movementQuantitySeries->append(set);
