@@ -1,6 +1,8 @@
 #ifndef MOCAPMODEL_H
 #define MOCAPMODEL_H
 
+#include "bodynode.hpp"
+
 #include <QVector>
 #include <QVector3D>
 #include <QMap>
@@ -21,47 +23,13 @@ T clip(const T& n, const T& lower, const T& upper) {
 class MocapAnimation
 {
 public:
-    enum class NODE : int
-    {
-        ROOT = 1,
-        LHIPJOINT = 2,
-        LFEMUR = 3,
-        LTIBIA = 4,
-        LFOOT = 5,
-        LTOES = 6,
-        RHIPJOINT = 7,
-        RFEMUR = 8,
-        RTIBIA = 9,
-        RFOOT = 10,
-        RTOES = 11,
-        LOWERBACK = 12,
-        UPPERBACK = 13,
-        THORAX = 14,
-        LOWERNECK = 15,
-        UPPERNECK = 16,
-        HEAD = 17,
-        LCLAVICLE = 18,
-        LHUMERUS = 19,
-        LRADIUS = 20,
-        LWRIST = 21,
-        LHAND = 22,
-        LFINGERS = 23,
-        LTHUMB = 24,
-        RCLAVICLE = 25,
-        RHUMERUS = 26,
-        RRADIUS = 27,
-        RWRIST = 28,
-        RHAND = 29,
-        RFINGERS = 30,
-        RTHUMB = 31
-    };
-
     typedef QVector<QVector3D> MocapFrame;
     typedef std::function<float(const MocapAnimation,const MocapAnimation)> SimilarityFunction;
     typedef std::function<float(const MocapAnimation)> MetricFunction;
     typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 
     MocapAnimation(const int id,const int category,const QVector<MocapFrame> poses);
+    ~MocapAnimation();
 
     int getId() const {return m_id;}
     int frames() const {return m_posesInTime.cols;}
@@ -88,6 +56,8 @@ public:
 
     std::array<float,31> getMovementQuantity() const {return m_movementQuantity;}
     std::array<cv::Vec3f, 31> getAxisMovementQuantity() const {return m_axisMovementQuantity;}
+    std::array<cv::Vec3i,72> getAxisMovementDirectionHist() const {return m_axisMovementDirectionHist;}
+    std::array<cv::Vec3f, 31> getAxisMovementAcc() const {return m_axisMovementAcc;}
     QMap<int, QMap<int,QMap<int,int>>> getVoxelMap() const {return m_voxelMap;}
     std::vector<cv::Mat> getAxisFourierDescriptor() const {return m_axisfd;}
     std::vector<cv::Mat> getDFCFourierDescriptor() const {return m_distanceFromCenterFd;}
@@ -104,12 +74,21 @@ private:
      */
     cv::Mat m_posesInTime;
 
+    void createTreeStructure();
+    std::vector<std::array<BodyNode*,31>> m_treePosesInTime;
+
     //////////////////
     std::array<float,31> m_movementQuantity;
     void computeMovementQuantity();
 
     std::array<cv::Vec3f,31> m_axisMovementQuantity;
     void computeAxisMovementQuantity();
+
+    std::array<cv::Vec3i,72> m_axisMovementDirectionHist; //xy,xz,yz
+    void computeAxisMovementDirectionHist();
+
+    std::array<cv::Vec3f,31> m_axisMovementAcc;
+    void computeAxisMovementAcc();
 
     QMap<int, QMap<int, QMap<int, int> > > m_voxelMap;
     void computeVoxels();

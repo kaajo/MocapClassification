@@ -15,12 +15,14 @@ CONFIG += staticlib
 SOURCES += \
     modelfactory.cpp \
     mocapanimation.cpp \
-    similaritymatrixcreator.cpp
+    similaritymatrixcreator.cpp \
+    bodynode.cpp
 
 HEADERS += \
     modelfactory.h \
     mocapanimation.h \
-    similaritymatrixcreator.h
+    similaritymatrixcreator.h \
+    bodynode.hpp
 
 unix {
     target.path = /usr/lib

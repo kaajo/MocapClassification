@@ -22,6 +22,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    QVector<MocapAnimation *> anims() const;
+
 private slots:
     void animationChecked(QListWidgetItem *item);
 

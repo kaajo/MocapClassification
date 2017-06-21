@@ -11,9 +11,9 @@
 int main(int /*argc*/, char *argv[])
 {
     ModelFactory factory;
-    QVector<MocapAnimation*> anims = factory.load("/home/kaajo/Dokumenty/SDIPR/data/objects-annotations-specific-coords_normPOS.data");
+    //QVector<MocapAnimation*> anims = factory.load("/home/kaajo/Dokumenty/SDIPR/data/objects-annotations-specific-coords_normPOS.data");
 
-    qDebug() << "loaded " << anims.size() << "animations";
+    //qDebug() << "loaded " << anims.size() << "animations";
 
     SimilarityMatrixCreator creator;
     //creator.createCategoryImage(anims);
@@ -26,7 +26,7 @@ int main(int /*argc*/, char *argv[])
 
     //creator.createSimilarityImage(anims, SimilarityFunctions::pointDist, false);
 
-    qDeleteAll(anims);
+    //qDeleteAll(anims);
 
     return 0;
 }

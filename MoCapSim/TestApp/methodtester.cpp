@@ -1,5 +1,7 @@
 #include "methodtester.h"
 
+QVector<int> MethodTester::m_skipCategories  = {56, 57,58,59,60, 61 , 138 , 139};
+
 MethodTester::MethodTester()
 {
 
@@ -95,16 +97,26 @@ float MethodTester::testMethod(const QVector<MocapAnimation *> &anims, const QVe
 float MethodTester::checkResultsError(const QVector<Result> &prevResults, const int numOfResults)
 {
     int trueCounter = 0;
+    int animsCounter = 0;
 
     for (int i = 0; i < prevResults.size(); ++i)
     {
+        if (!m_skipCategories.contains(prevResults[i].animation()->getRealCategory()))
+        {
+            ++animsCounter;
+        }
+        else
+        {
+            std::cout << "skip anim ID: " << prevResults[i].animation()->getId() << std::endl;
+        }
+
         if (prevResults[i].isCategoryMatched(numOfResults))
         {
             ++trueCounter;
         }
     }
 
-    return trueCounter/(float)prevResults.size();
+    return trueCounter/(float)animsCounter;
 }
 
 void MethodTester::printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output)
@@ -115,4 +127,9 @@ void MethodTester::printMethodError(int numOfPrevResults, QVector<int> checkSet,
         std::cout << checkSet[i] << ": " << output[i] * 100.0f << " %" << std::endl;
     }
     std::cout << "________________" << std::endl;
+}
+
+void MethodTester::setSkipCategories(const QVector<int> &skipCategories)
+{
+    m_skipCategories = skipCategories;
 }

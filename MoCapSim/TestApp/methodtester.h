@@ -26,7 +26,9 @@ public:
 
     static void printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output);
 
+    void setSkipCategories(const QVector<int> &skipCategories);
 private:
+    static QVector<int> m_skipCategories;
 
 };
 

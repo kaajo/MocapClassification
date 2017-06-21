@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    loadDataset("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data",20);
+    loadDataset("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data");
 
     m_vis = new MetricVisualization;
     ui->centralWidget->layout()->addWidget(m_vis);
@@ -39,10 +39,10 @@ void MainWindow::animationChecked(QListWidgetItem *item)
     }
 }
 
-bool MainWindow::loadDataset(const QString &path,const int maxNOAnims)
+bool MainWindow::loadDataset(const QString &path, const int maxNOAnims)
 {
     ModelFactory factory;
-    m_anims = factory.load(path,maxNOAnims);
+    m_anims = factory.load(path, maxNOAnims);
 
     if (m_anims.empty())
     {
@@ -63,4 +63,9 @@ bool MainWindow::loadDataset(const QString &path,const int maxNOAnims)
     connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked);
 
     return true;
+}
+
+QVector<MocapAnimation *> MainWindow::anims() const
+{
+    return m_anims;
 }

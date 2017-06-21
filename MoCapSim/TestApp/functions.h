@@ -66,7 +66,7 @@ float pointMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
     float error = 0.0f;
 
     auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();;
+    auto metrics2 = second.getMovementQuantity();
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -85,37 +85,130 @@ float pointMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
     return sqrtf(error);
 }
 
-float pointMovementCorrelation(const MocapAnimation &first,const MocapAnimation &second)
+float pointMovementDirectionHistogram(const MocapAnimation &first,const MocapAnimation &second)
 {
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
+    auto metrics1 = first.getAxisMovementDirectionHist();
+    auto metrics2 = second.getAxisMovementDirectionHist();
 
     cv::Mat pnts1, pnts2;
 
-    pnts1.create(1, metrics1.size()+4,CV_32FC1);
-    pnts2.create(1, metrics2.size()+4,CV_32FC1);
+    pnts1.create(1, metrics1.size(),CV_32FC3);
+    pnts2.create(1, metrics2.size(),CV_32FC3);
+
+    for (size_t i = 0; i < metrics1.size(); ++i)
+    {
+        pnts1.at<cv::Vec3f>(i) = metrics1[i];
+        pnts2.at<cv::Vec3f>(i) = metrics2[i];
+    }
+
+    std::vector<cv::Mat> hist1,hist2;
+    cv::split(pnts1,hist1);
+    cv::split(pnts2,hist2);
+
+
+    auto method = CV_COMP_CHISQR;
+
+    double retVal = std::min(cv::compareHist(hist1[0],hist2[0],method) +
+                             cv::compareHist(hist1[1],hist2[1],method) +
+                             cv::compareHist(hist1[2],hist2[2],method) ,
+                             cv::compareHist(hist2[0],hist1[0],method) +
+                             cv::compareHist(hist2[1],hist1[1],method) +
+                             cv::compareHist(hist2[2],hist1[2],method));
+
+    return std::fabs(retVal);
+}
+
+float compareHistFeatures(const MocapAnimation &first,const MocapAnimation &second)
+{
+    const auto& metrics1 = first.getMovementQuantity();
+    const auto& metrics2 = second.getMovementQuantity();
+
+    assert(metrics1.size() == metrics2.size());
+
+    cv::Mat pnts1, pnts2;
+
+    pnts1.create(1, metrics1.size()*2+4,CV_32FC1);
+    pnts2.create(1, metrics2.size()*2+4,CV_32FC1);
 
     for (size_t i = 0; i < metrics1.size(); ++i)
     {
         pnts1.at<float>(i) = metrics1[i];
         pnts2.at<float>(i) = metrics2[i];
     }
+    for (size_t i = 0; i < metrics1.size(); ++i)
+    {
+        pnts1.at<float>(i + metrics1.size()) = cv::norm(first.getAxisMovementAcc()[i]);
+        pnts2.at<float>(i + metrics1.size()) = cv::norm(second.getAxisMovementAcc()[i]);
+    }
+
+    const auto &maq1 = first.getAxisMovementQuantity();
+    cv::Vec3f sumAxis1 = std::accumulate(maq1.begin(),maq1.end(),cv::Vec3f(0.0f,0.0f,0.0f));
+
+    pnts1.at<float>(metrics1.size()*2) = sumAxis1[0];
+    pnts1.at<float>(metrics1.size()*2+1) = sumAxis1[1];
+    pnts1.at<float>(metrics1.size()*2+2) = sumAxis1[2];
+    pnts1.at<float>(metrics1.size()*2+3) = first.frames();
+
+    const auto &maq2 = second.getAxisMovementQuantity();
+    cv::Vec3f sumAxis2 = std::accumulate(maq2.begin(),maq2.end(),cv::Vec3f(0.0f,0.0f,0.0f));
+
+    pnts2.at<float>(metrics2.size()*2) = sumAxis2[0];
+    pnts2.at<float>(metrics2.size()*2+1) = sumAxis2[1];
+    pnts2.at<float>(metrics2.size()*2+2) = sumAxis2[2];
+    pnts2.at<float>(metrics2.size()*2+3) = second.frames();
+
+    const double retVal = std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR) , cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR));
+
+    return std::fabs(retVal);
+}
+
+float pointMovementCorrelation2(const MocapAnimation &first,const MocapAnimation &second)
+{
+    auto metrics1 = first.getMovementQuantity();
+    auto metrics2 = second.getMovementQuantity();
+    auto movDir1 = first.getAxisMovementDirectionHist();
+    auto movDir2 = second.getAxisMovementDirectionHist();
+
+    cv::Mat pnts1, pnts2;
+
+    pnts1.create(1, metrics1.size()*2+movDir1.size()*3+4,CV_32FC1);
+    pnts2.create(1, metrics2.size()*2+movDir1.size()*3+4,CV_32FC1);
+
+    for (size_t i = 0; i < metrics1.size(); ++i)
+    {
+        pnts1.at<float>(i) = metrics1[i];
+        pnts2.at<float>(i) = metrics2[i];
+    }
+    for (size_t i = 0; i < metrics1.size(); ++i)
+    {
+        pnts1.at<float>(i + metrics1.size()) = cv::norm(first.getAxisMovementAcc()[i]);
+        pnts2.at<float>(i + metrics1.size()) = cv::norm(second.getAxisMovementAcc()[i]);
+    }
+    for (size_t i = 0; i < movDir1.size(); ++i)
+    {
+        pnts1.at<float>(i+metrics1.size()*2) = movDir1[i][0];
+        pnts1.at<float>(i+metrics1.size()*2+movDir1.size()) = movDir1[i][1];
+        pnts1.at<float>(i+metrics1.size()*2+movDir1.size()*2) = movDir1[i][2];
+        pnts2.at<float>(i+metrics1.size()*2) = movDir2[i][0];
+        pnts2.at<float>(i+metrics1.size()*2+movDir1.size()) = movDir2[i][1];
+        pnts2.at<float>(i+metrics1.size()*2+movDir1.size()*2) = movDir2[i][2];
+    }
 
     auto maq1 = first.getAxisMovementQuantity();
     cv::Vec3f sumAxis1 = std::accumulate(maq1.begin(),maq1.end(),cv::Vec3f(0.0f,0.0f,0.0f));
 
-    pnts1.at<float>(metrics1.size()) = sumAxis1[0];
-    pnts1.at<float>(metrics1.size()+1) = sumAxis1[1];
-    pnts1.at<float>(metrics1.size()+2) = sumAxis1[2];
-    pnts1.at<float>(metrics1.size()+3) = first.frames();
+    pnts1.at<float>(metrics1.size()*2+movDir1.size()*3) = sumAxis1[0];
+    pnts1.at<float>(metrics1.size()*2+movDir1.size()*3+1) = sumAxis1[1];
+    pnts1.at<float>(metrics1.size()*2+movDir1.size()*3+2) = sumAxis1[2];
+    pnts1.at<float>(metrics1.size()*2+movDir1.size()*3+3) = first.frames();
 
     auto maq2 = second.getAxisMovementQuantity();
     cv::Vec3f sumAxis2 = std::accumulate(maq2.begin(),maq2.end(),cv::Vec3f(0.0f,0.0f,0.0f));
 
-    pnts2.at<float>(metrics2.size()) = sumAxis2[0];
-    pnts2.at<float>(metrics2.size()+1) = sumAxis2[1];
-    pnts2.at<float>(metrics2.size()+2) = sumAxis2[2];
-    pnts2.at<float>(metrics2.size()+3) = second.frames();
+    pnts2.at<float>(metrics2.size()*2+movDir1.size()*3) = sumAxis2[0];
+    pnts2.at<float>(metrics2.size()*2+movDir1.size()*3+1) = sumAxis2[1];
+    pnts2.at<float>(metrics2.size()*2+movDir1.size()*3+2) = sumAxis2[2];
+    pnts2.at<float>(metrics2.size()*2+movDir1.size()*3+3) = second.frames();
 
     double retVal = std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR) , cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR));
 

@@ -3,6 +3,7 @@
 #include <QtConcurrentMap>
 
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
 
 MocapAnimation::MocapAnimation(const int id, const int category, const QVector<MocapFrame> poses) :
     m_id(id),
@@ -11,17 +12,38 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 {
     for (int i = 0; i < poses.size(); ++i)
     {
+        std::array<BodyNode*,31> treePose;
+
         for (int j = 0; j < poses[0].size(); ++j)
         {
-            m_posesInTime.at<cv::Vec3f>(j,i) = cv::Vec3f(poses[i][j].x(),poses[i][j].y(),poses[i][j].z());
+            const auto &pos = cv::Vec3f(poses[i][j].x(),poses[i][j].y(),poses[i][j].z());
+            m_posesInTime.at<cv::Vec3f>(j,i) = pos;
+            treePose[j] = new BodyNode(BodyNode::NODE(j+1),pos);
         }
+
+        m_treePosesInTime.push_back(treePose);
     }
+
+    createTreeStructure();
 
     computeMovementQuantity();
     computeAxisMovementQuantity();
+    computeAxisMovementDirectionHist();
+    computeAxisMovementAcc();
     computeVoxels();
     computeAxisFourierDescriptors();
     computeDFCFourierDescriptors();
+}
+
+MocapAnimation::~MocapAnimation()
+{
+    for (size_t i = 0; i < m_treePosesInTime.size(); ++i)
+    {
+        for (size_t j = 0; j < m_treePosesInTime[i].size(); ++j)
+        {
+            delete m_treePosesInTime[i][j];
+        }
+    }
 }
 
 QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const SimilarityFunction function, cv::Mat &distanceMat) const
@@ -59,6 +81,36 @@ QPair<float,MocapAnimation*> MocapAnimation::mapFun(MocapAnimation *it,const Moc
     return QPair<float,MocapAnimation*>(function(*anim,*it),it);
 }
 
+void MocapAnimation::createTreeStructure()
+{
+    for (size_t i = 0; i < m_treePosesInTime.size(); ++i)
+    {
+        for (size_t j = 0; j < m_treePosesInTime[0].size(); ++j)
+        {
+            BodyNode::NODE nodeType = m_treePosesInTime[i][j]->getNodeType();
+            BodyNode::NODE parentType = BodyNode::getParentForType(nodeType);
+            std::vector<BodyNode::NODE> childrenTypes = BodyNode::getChildrenForType(nodeType);
+
+            if (parentType != BodyNode::NODE::UNDEFINED)
+            {
+                BodyNode* parent = m_treePosesInTime[i][static_cast<std::underlying_type<BodyNode::NODE>::type>(parentType) - 1];
+                m_treePosesInTime[i][j]->setParent(parent);
+            }
+
+            for (size_t ch = 0; ch < childrenTypes.size(); ++ch)
+            {
+                if (childrenTypes[ch] != BodyNode::NODE::UNDEFINED)
+                {
+                    BodyNode* child = m_treePosesInTime[i][static_cast<std::underlying_type<BodyNode::NODE>::type>(childrenTypes[ch]) - 1];
+
+                    m_treePosesInTime[i][j]->addChild(child);
+                }
+            }
+
+        }
+    }
+}
+
 void MocapAnimation::computeMovementQuantity()
 {
     for (size_t n = 0; n < 31; ++n)
@@ -88,6 +140,47 @@ void MocapAnimation::computeAxisMovementQuantity()
         }
 
         m_axisMovementQuantity[n] = q;
+    }
+}
+
+void MocapAnimation::computeAxisMovementDirectionHist()
+{
+    for (size_t n = 0; n < 31; ++n)
+    {
+        for (int i = 1; i < m_posesInTime.cols; ++i)
+        {
+            cv::Vec3f diff = m_posesInTime.at<cv::Vec3f>(n,i) - m_posesInTime.at<cv::Vec3f>(n,i-1);
+
+            float dirXY = (std::atan2(diff[1],diff[0]) + M_PI)* 180.0/M_PI;
+            float dirXZ = (std::atan2(diff[2],diff[0]) + M_PI)* 180.0/M_PI;
+            float dirYZ = (std::atan2(diff[2],diff[1]) + M_PI)* 180.0/M_PI;
+
+            ++m_axisMovementDirectionHist[std::nearbyintf(dirXY/5.0f)][0];
+            ++m_axisMovementDirectionHist[std::nearbyintf(dirXZ/5.0f)][1];
+            ++m_axisMovementDirectionHist[std::nearbyintf(dirYZ/5.0f)][2];
+        }
+    }
+}
+
+void MocapAnimation::computeAxisMovementAcc()
+{
+    for (size_t n = 0; n < 31; ++n)
+    {
+        cv::Vec3f q = 0.0f;
+
+        for (int i = 2; i < m_posesInTime.cols; ++i)
+        {
+            cv::Vec3f diff1;
+            cv::absdiff(m_posesInTime.at<cv::Vec3f>(n,i), m_posesInTime.at<cv::Vec3f>(n,i-1),diff1);
+            cv::Vec3f diff2;
+            cv::absdiff(m_posesInTime.at<cv::Vec3f>(n,i-1), m_posesInTime.at<cv::Vec3f>(n,i-2),diff2);
+            cv::Vec3f diff;
+            cv::absdiff(diff1,diff2,diff);
+
+            q += diff;
+        }
+
+        m_axisMovementAcc[n] = q;
     }
 }
 

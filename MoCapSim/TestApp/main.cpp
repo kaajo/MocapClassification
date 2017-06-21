@@ -35,13 +35,12 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     QApplication a(argc, argv);
-    //MainWindow w;
-    //w.setWindowState(Qt::WindowMaximized);
-    //w.show();
 
+    MainWindow w;
+    w.setWindowState(Qt::WindowMaximized);
+    w.show();
 
-    ModelFactory factory;
-    QVector<MocapAnimation*> anims = factory.load("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data");
+    QVector<MocapAnimation*> anims = w.anims();
 
     SimilarityMatrixCreator creator;
     //creator.createSimilarityImage(anims,SimilarityFunctions::MDDDTWNorm,"/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew");
@@ -53,26 +52,43 @@ int main(int argc, char *argv[])
     cv::Mat MDDDTWNormMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew.exr");
 
 /*
-    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementCorrelation,pointMovementCorrelationErrorMatrix,{1,2,5,10,15,20}),
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementDirectionHistogram,cv::Mat(),{1,2,5,10,15,20})});
+
+
+    1: 55.2665 %
+    2: 71.0021 %
+    5: 84.7761 %
+    10: 90.8742 %
+    15: 93.3049 %
+    20: 94.7548 %
+*/
+
+
+    //56 - 61 , 138 , 139
+    //TODO úspešnosť kategorie
+
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20}),
                                     FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5}),
-                                    FunctionProp(40,SimilarityFunctions::pointMovementCorrelation,pointMovementCorrelationErrorMatrix,{1,2,5,10}),
+                                    FunctionProp(40,SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10}),
                                     FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5})});
 
     1: 87.2495 %
-    2: 93.7313 %
-    5: 97.4414 %
+    2: 93.774 %
+    5: 97.3561 %
 */
 
-    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementCorrelation,cv::Mat(),{1,2,5,10,15,20})});
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20})});
 
-    /*
-    1: 64.1791 %
-    2: 77.3134 %
-    5: 92.5373 %
-    10: 96.2473 %
-    15: 97.8252 %
-    20: 98.2942 %
-    */
+
+1: 65.2452 %
+2: 78.1237 %
+5: 92.7932 %
+10: 96.5032 %
+15: 97.8252 %
+20: 98.4648 %
+*/
 
 /*
     float max = 0.0f;
@@ -227,6 +243,5 @@ int main(int argc, char *argv[])
     // 81.1514 %
 */
 
-    //qDeleteAll(anims);
     return a.exec();
 }
