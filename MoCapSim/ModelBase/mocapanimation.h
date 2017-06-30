@@ -24,7 +24,7 @@ class MocapAnimation
 {
 public:
     typedef QVector<QVector3D> MocapFrame;
-    typedef std::function<float(const MocapAnimation,const MocapAnimation)> SimilarityFunction;
+    typedef std::function<float(const MocapAnimation&,const MocapAnimation&)> SimilarityFunction;
     typedef std::function<float(const MocapAnimation)> MetricFunction;
     typedef QMultiMap<float,QPair<int,MocapAnimation*>> Results;
 

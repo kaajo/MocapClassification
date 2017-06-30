@@ -3,6 +3,7 @@
 
 #include "result.h"
 #include "mocapanimation.h"
+#include "resultstats.hpp"
 
 #include <opencv2/core/core.hpp>
 
@@ -12,6 +13,7 @@
 
 // int - number of results from previous method, similarity function, set of "top N" results to print
 typedef std::tuple<int,MocapAnimation::SimilarityFunction,cv::Mat,QVector<int>> FunctionProp;
+// float - weight of method
 typedef std::tuple<float,cv::Mat> WeightedProp;
 
 class MethodTester

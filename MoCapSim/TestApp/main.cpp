@@ -67,12 +67,12 @@ int main(int argc, char *argv[])
     //56 - 61 , 138 , 139
     //TODO úspešnosť kategorie
 
-/*
+
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20}),
                                     FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5}),
                                     FunctionProp(40,SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10}),
                                     FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5})});
-
+/*
     1: 87.2495 %
     2: 93.774 %
     5: 97.3561 %
