@@ -16,13 +16,17 @@ SOURCES += \
     modelfactory.cpp \
     mocapanimation.cpp \
     similaritymatrixcreator.cpp \
-    bodynode.cpp
+    bodynode.cpp \
+    result.cpp \
+    resultstats.cpp
 
 HEADERS += \
     modelfactory.h \
     mocapanimation.h \
     similaritymatrixcreator.h \
-    bodynode.hpp
+    bodynode.hpp \
+    result.h \
+    resultstats.hpp
 
 unix {
     target.path = /usr/lib

@@ -1,14 +1,12 @@
 #include "resultstats.hpp"
 
-QVector<int> ResultMetrics::m_skipCategories  = {56, 57,58,59,60, 61 , 138 , 139};
-
 ResultMetrics::ResultMetrics(QVector<Result> &results) :
     m_results(results)
 {
 
 }
 
-float ResultMetrics::getAccuracy(const int numOfResults)
+float ResultMetrics::getAccuracy(const int numOfResults) const
 {
     int matchedCounter = 0;
     int animsCounter = 0;
@@ -28,13 +26,13 @@ float ResultMetrics::getAccuracy(const int numOfResults)
         }
     }
 
-    return matchedCounter/(float)animsCounter;
+    return matchedCounter/static_cast<float>(animsCounter);
 }
 
-std::map<int16_t, float> ResultMetrics::getCategoryAccuracy(const int numOfResults)
+QMap<int16_t, qreal> ResultMetrics::getCategoryAccuracy(const int numOfResults) const
 {
-    std::map<int16_t, float> matchedCounters;
-    std::map<int16_t, float> animCounters;
+    QMap<int16_t, qreal> matchedCounters;
+    QMap<int16_t, qreal> animCounters;
 
     for (int i = 0; i < m_results.size(); ++i)
     {
@@ -53,9 +51,9 @@ std::map<int16_t, float> ResultMetrics::getCategoryAccuracy(const int numOfResul
         }
     }
 
-    for (auto &pair : matchedCounters)
+    for (int16_t val : matchedCounters.keys())
     {
-        pair.second /= animCounters[pair.first];
+        matchedCounters[val] /= animCounters[val];
     }
 
     return matchedCounters;

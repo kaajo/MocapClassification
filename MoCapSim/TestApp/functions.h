@@ -1,6 +1,9 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include "helperfunctions.h"
+#include "comparefunctions.h"
+
 #include <mocapanimation.h>
 
 #include <QVector3D>
@@ -15,26 +18,63 @@
 
 namespace SimilarityFunctions {
 
-float pointMovementAbsoluteError(const MocapAnimation &first,const MocapAnimation &second)
+float movementAmount(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
 {
-    float error = 0.0f;
+    const auto maq1 = first.getAxisMovementQuantity();
+    const auto maq2 = second.getAxisMovementQuantity();
 
+    cv::Mat pnts1, pnts2;
+    pnts1.create(1, maq1.size()*3,CV_32FC1);
+    pnts2.create(1, maq2.size()*3,CV_32FC1);
+
+    const int s = maq1.size();
+
+    for (int i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i) = maq1[i][0];
+        pnts2.at<float>(i) = maq2[i][0];
+        pnts1.at<float>(s+i) = maq1[i][1];
+        pnts2.at<float>(s+i) = maq2[i][1];
+        pnts1.at<float>(2*s+i) = maq1[i][2];
+        pnts2.at<float>(2*s+i) = maq2[i][2];
+    }
+
+    return static_cast<float>(CompareHist::compareHistogramFunction(pnts1,pnts2,method));
+}
+
+float movementAmountAxisReduced(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
+{
+    const auto metrics1 = first.getMovementQuantity();
+    const auto metrics2 = second.getMovementQuantity();
+
+    cv::Mat m1(1,31,CV_32FC1),m2(1,31,CV_32FC1);
+
+    for (int n = 0; n < 31; ++n)
+    {
+        m1.at<float>(n) = metrics1[n];
+        m2.at<float>(n) = metrics2[n];
+    }
+
+    return static_cast<float>(CompareHist::compareHistogramFunction(m1,m2,method));
+}
+
+float movementAmountPointsReduced(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
+{
+    return 0.0f;
+}
+
+float movementAmountTotal(const MocapAnimation &first,const MocapAnimation &second)
+{
     auto metrics1 = first.getMovementQuantity();
     auto metrics2 = second.getMovementQuantity();
 
-    for (size_t n = 0; n < 31; ++n)
-    {
-        if (metrics1[n] == 0.0f || metrics2[n] == 0.0f) continue;
+    float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
+    float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
 
-        float e = std::fabs((metrics2[n] - metrics1[n]));
-
-        error += std::pow(e,2);
-    }
-
-    assert(error >= 0.0f);
-
-    return sqrtf(error);
+    return std::fabs(sum2 - sum1);
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 float pointMovementDominant(const MocapAnimation &first,const MocapAnimation &second)
 {
@@ -114,6 +154,93 @@ float pointMovementDirectionHistogram(const MocapAnimation &first,const MocapAni
                              cv::compareHist(hist2[0],hist1[0],method) +
                              cv::compareHist(hist2[1],hist1[1],method) +
                              cv::compareHist(hist2[2],hist1[2],method));
+
+    return std::fabs(retVal);
+}
+
+float compareAllAxesMovementQuantity2(const MocapAnimation &first,const MocapAnimation &second)
+{
+    const auto &maq1 = first.getAxisMovementQuantity();
+    const auto &maq2 = second.getAxisMovementQuantity();
+
+    cv::Mat pnts1, pnts2;
+    pnts1.create(maq1.size(),3,CV_32FC1);
+    pnts2.create(maq2.size(),3,CV_32FC1);
+
+    const size_t s = maq1.size();
+
+    for (size_t i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i,0) = maq1[i][0];
+        pnts2.at<float>(i,0) = maq2[i][0];
+        pnts1.at<float>(i,1) = maq1[i][1];
+        pnts2.at<float>(i,1) = maq2[i][1];
+        pnts1.at<float>(i,2) = maq1[i][2];
+        pnts2.at<float>(i,2) = maq2[i][2];
+    }
+
+    const double retVal = std::min(cv::EMD(pnts1,pnts2,CV_DIST_L2) , cv::EMD(pnts1,pnts2,CV_DIST_L2));
+
+    return std::fabs(retVal);
+}
+
+
+float compareAllAxesMovementAcceleration(const MocapAnimation &first,const MocapAnimation &second)
+{
+    const auto &maq1 = first.getAxisMovementAcc();
+    const auto &maq2 = second.getAxisMovementAcc();
+
+    cv::Mat pnts1, pnts2;
+    pnts1.create(1, maq1.size()*3,CV_32FC1);
+    pnts2.create(1, maq2.size()*3,CV_32FC1);
+
+    const size_t s = maq1.size();
+
+    for (size_t i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i) = maq1[i][0];
+        pnts2.at<float>(i) = maq2[i][0];
+        pnts1.at<float>(s+i) = maq1[i][1];
+        pnts2.at<float>(s+i) = maq2[i][1];
+        pnts1.at<float>(2*s+i) = maq1[i][2];
+        pnts2.at<float>(2*s+i) = maq2[i][2];
+    }
+
+    const double retVal = std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR) , cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR));
+
+    return std::fabs(retVal);
+}
+
+float compareAllAxesQuantityAcc(const MocapAnimation &first,const MocapAnimation &second)
+{
+    const auto &maq1 = first.getAxisMovementQuantity();
+    const auto &maq2 = second.getAxisMovementQuantity();
+    const auto &macc1 = first.getAxisMovementAcc();
+    const auto &macc2 = second.getAxisMovementAcc();
+
+    cv::Mat pnts1, pnts2;
+    pnts1.create(1, maq1.size()*6,CV_32FC1);
+    pnts2.create(1, maq2.size()*6,CV_32FC1);
+
+    const size_t s = maq1.size();
+
+    for (size_t i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i) = maq1[i][0];
+        pnts2.at<float>(i) = maq2[i][0];
+        pnts1.at<float>(s+i) = maq1[i][1];
+        pnts2.at<float>(s+i) = maq2[i][1];
+        pnts1.at<float>(2*s+i) = maq1[i][2];
+        pnts2.at<float>(2*s+i) = maq2[i][2];
+        pnts1.at<float>(3*s+i) = macc1[i][0];
+        pnts2.at<float>(3*s+i) = macc2[i][0];
+        pnts1.at<float>(4*s+i) = macc1[i][1];
+        pnts2.at<float>(4*s+i) = macc2[i][1];
+        pnts1.at<float>(5*s+i) = macc1[i][2];
+        pnts2.at<float>(5*s+i) = macc2[i][2];
+    }
+
+    const double retVal = std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR) , cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR));
 
     return std::fabs(retVal);
 }
@@ -224,17 +351,6 @@ float totalMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
 
     return std::fabs((sum2 - sum1)/std::fmax(sum1,sum2));
-}
-
-float totalMovementAbsoluteError(const MocapAnimation &first,const MocapAnimation &second)
-{
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
-
-    float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
-    float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
-
-    return std::fabs(sum2 - sum1);
 }
 
 float dominantPoints(const MocapAnimation &first,const MocapAnimation &second)

@@ -20,15 +20,13 @@ OBJECTS_DIR = release/obj
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    methodtester.cpp \
-    result.cpp \
-    resultstats.cpp
+    methodtester.cpp
 
 HEADERS  += mainwindow.h \
     functions.h \
     methodtester.h \
-    result.h \
-    resultstats.hpp
+    helperfunctions.h \
+    comparefunctions.h
 
 FORMS    += mainwindow.ui
 

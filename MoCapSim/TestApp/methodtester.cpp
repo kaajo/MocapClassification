@@ -1,5 +1,7 @@
 #include "methodtester.h"
 
+#include <resultvisualization.hpp>
+
 QVector<int> MethodTester::m_skipCategories  = {56, 57,58,59,60, 61 , 138 , 139};
 
 MethodTester::MethodTester()
@@ -49,13 +51,11 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
         results = resultsTmp;
         resultsTmp.clear();
 
+        ResultMetrics metr(results);
+
         for (const int noRes : std::get<3>(functions[f]))
         {
             const float err = checkResultsError(results,noRes);
-
-            ResultMetrics metr(results);
-            float error2 = metr.getAccuracy();
-            auto error3 = metr.getCategoryAccuracy();
 
             error.push_back(err);
         }
@@ -113,7 +113,7 @@ float MethodTester::checkResultsError(const QVector<Result> &prevResults, const 
         }
         else
         {
-            std::cout << "skip anim ID: " << prevResults[i].animation()->getId() << std::endl;
+            //std::cout << "skip anim ID: " << prevResults[i].animation()->getId() << std::endl;
             continue;
         }
 

@@ -25,12 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     metricvisualization.cpp \
-    animplayer.cpp
+    animplayer.cpp \
+    resultvisualization.cpp
 
 HEADERS +=\
         visualization_global.h \
     metricvisualization.h \
-    animplayer.h
+    animplayer.h \
+    resultvisualization.hpp
 
 unix {
     target.path = /usr/lib
@@ -52,4 +54,5 @@ else:unix: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a
 
 FORMS += \
     metricvisualization.ui \
-    animplayer.ui
+    animplayer.ui \
+    resultvisualization.ui

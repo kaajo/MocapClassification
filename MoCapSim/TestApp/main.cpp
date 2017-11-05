@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     w.setWindowState(Qt::WindowMaximized);
     w.show();
 
-    QVector<MocapAnimation*> anims = w.anims();
+    auto anims = w.anims();
 
     SimilarityMatrixCreator creator;
     //creator.createSimilarityImage(anims,SimilarityFunctions::MDDDTWNorm,"/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew");
@@ -50,6 +50,29 @@ int main(int argc, char *argv[])
     cv::Mat pointMovementAbsoluteErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementAbsoluteError.exr");
     cv::Mat MDDTWMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDTW.exr");
     cv::Mat MDDDTWNormMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew.exr");
+
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),
+                                    cv::Mat(),{1,2,5,10,15,20,50})});
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesQuantityAcc, cv::Mat(),{1,2,5,10,15,20,50})});
+
+
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity,cv::Mat(),{1,2,5,10,15,20,50}),
+                                    FunctionProp(50,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,5})});
+*/    /*
+used 50 from previous method
+1: 29.915 %
+2: 40.5562 %
+5: 55.9193 %
+
+*/
+
+
+    //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity,cv::Mat(),{1,2,5,10,15,20})});
+    //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity2,cv::Mat(),{1,2,5,10,15,20})});
+
+    //SimilarityFunctions::compareAllAxesMovementAcceleration2(*anims[1],*anims[2]);
+    //SimilarityFunctions::compareAllAxesMovementAcceleration2(*anims[1],*anims[3]);
 
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointMovementDirectionHistogram,cv::Mat(),{1,2,5,10,15,20})});
@@ -67,15 +90,20 @@ int main(int argc, char *argv[])
     //56 - 61 , 138 , 139
     //TODO úspešnosť kategorie
 
-
+/*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20}),
                                     FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5}),
                                     FunctionProp(40,SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10}),
                                     FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5})});
-/*
+
     1: 87.2495 %
     2: 93.774 %
     5: 97.3561 %
+
+    1: 87.4141 %
+    2: 93.8574 %
+    5: 97.4227 %
+
 */
 
 /*
@@ -242,6 +270,8 @@ int main(int argc, char *argv[])
                       FunctionProp(1000,SimilarityFunctions::pointMovementAbsoluteError,cv::Mat(),{1,5,10,15,20})});
     // 81.1514 %
 */
+
+
 
     return a.exec();
 }

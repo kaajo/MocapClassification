@@ -78,6 +78,7 @@ private:
     std::vector<std::array<BodyNode*,31>> m_treePosesInTime;
 
     //////////////////
+
     std::array<float,31> m_movementQuantity;
     void computeMovementQuantity();
 

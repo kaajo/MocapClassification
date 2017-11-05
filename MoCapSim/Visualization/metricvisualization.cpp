@@ -107,6 +107,7 @@ void MetricVisualization::setupMovementQuantityGraph()
     m_movementQuantityChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_movementQuantitySeries = new QBarSeries();
+    m_movementQuantitySeries->setUseOpenGL(true);
     m_movementQuantityChart->addSeries(m_movementQuantitySeries);
 
     m_movementQuantityChart->createDefaultAxes();
@@ -148,6 +149,7 @@ void MetricVisualization::setupAnimPropsGraph()
     m_animPropsChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_animPropsSeries = new QBarSeries();
+    m_animPropsSeries->setUseOpenGL(true);
     m_animPropsChart->addSeries(m_animPropsSeries);
 
 
@@ -208,6 +210,7 @@ void MetricVisualization::setupFourierDescGraph()
     m_fdChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_fdSeries = new QBarSeries();
+    m_fdSeries->setUseOpenGL(true);
     m_fdChart->addSeries(m_fdSeries);
 
     QStringList categories;
@@ -259,6 +262,7 @@ void MetricVisualization::setupFourierDFCDescGraph()
     m_fdDFCChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_fdDFCSeries = new QBarSeries();
+    m_fdDFCSeries->setUseOpenGL(true);
     m_fdDFCChart->addSeries(m_fdDFCSeries);
 
     QStringList categories;

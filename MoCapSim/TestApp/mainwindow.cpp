@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     loadDataset("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data");
+    //loadDataset("/home/mkrajicek/Dokumenty/SDIPR/objects-annotations_filtered0.9GT-coords_normPS.data",12000);
+    datasetStats();
 
     m_vis = new MetricVisualization;
     ui->centralWidget->layout()->addWidget(m_vis);
@@ -63,6 +65,24 @@ bool MainWindow::loadDataset(const QString &path, const int maxNOAnims)
     connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked);
 
     return true;
+}
+
+void MainWindow::datasetStats()
+{
+    std::map<int,int> cats;
+
+    for (int i= 0; i < m_anims.size(); ++i)
+    {
+        cats[m_anims[i]->getRealCategory()]++;
+    }
+
+    std::cout << "Dataset: " << m_anims.size() << " actions with "
+              << cats.size() << " categories" << std::endl;
+    std::cout << "category , count" << std::endl;
+
+    for (std::pair<int,int> cat : cats) {
+        std::cout << cat.first << " , " << cat.second << std::endl;
+    }
 }
 
 QVector<MocapAnimation *> MainWindow::anims() const

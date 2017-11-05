@@ -35,6 +35,8 @@ private:
     QVector<MocapAnimation*> m_anims;
     MetricVisualization *m_vis = nullptr;
     AnimPlayer *m_animPlayer = nullptr;
+
+    void datasetStats();
 };
 
 #endif // MAINWINDOW_H
