@@ -1,6 +1,3 @@
-#include "metricvisualization.h"
-#include "ui_metricvisualization.h"
-
 #include <QLineEdit>
 #include <QLabel>
 #include <QSpacerItem>
@@ -9,6 +6,11 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QLegend>
 #include <QtCharts/QBarCategoryAxis>
+
+
+#include "ui_metricvisualization.h"
+#include "metricvisualization.h"
+
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -129,7 +131,7 @@ void MetricVisualization::refreshMovementQuantityGraph()
     {
         QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
 
-        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantity();
+        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantityPoints();
 
         for (int j = 0; j < numOfPoints; ++j)
         {
@@ -180,7 +182,7 @@ void MetricVisualization::refreshAnimPropsGraph()
     {
         QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
 
-        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantity();
+        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantityPoints();
         float sum = std::accumulate(mq.begin(), mq.end(), 0.0f);
 
         const std::array<cv::Vec3f,numOfPoints> maq = m_curAnims[i]->getAxisMovementQuantity();

@@ -1,18 +1,21 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <QVector3D>
+
 #include "helperfunctions.h"
 #include "comparefunctions.h"
 
-#include <mocapanimation.h>
 
-#include <QVector3D>
-#include <QDebug>
+
+
 
 #include <opencv2/opencv.hpp>
 
 #include <cassert>
 #include <vector>
+
+#include <mocapanimation.h>
 
 #define NUM_OF_NODES 31
 
@@ -44,8 +47,8 @@ float movementAmount(const MocapAnimation &first,const MocapAnimation &second, C
 
 float movementAmountAxisReduced(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
 {
-    const auto metrics1 = first.getMovementQuantity();
-    const auto metrics2 = second.getMovementQuantity();
+    const auto metrics1 = first.getMovementQuantityPoints();
+    const auto metrics2 = second.getMovementQuantityPoints();
 
     cv::Mat m1(1,31,CV_32FC1),m2(1,31,CV_32FC1);
 
@@ -65,8 +68,8 @@ float movementAmountPointsReduced(const MocapAnimation &first,const MocapAnimati
 
 float movementAmountTotal(const MocapAnimation &first,const MocapAnimation &second)
 {
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -80,8 +83,8 @@ float pointMovementDominant(const MocapAnimation &first,const MocapAnimation &se
 {
     float error = 0.0f;
 
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -105,8 +108,8 @@ float pointMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
 {
     float error = 0.0f;
 
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -247,8 +250,8 @@ float compareAllAxesQuantityAcc(const MocapAnimation &first,const MocapAnimation
 
 float compareHistFeatures(const MocapAnimation &first,const MocapAnimation &second)
 {
-    const auto& metrics1 = first.getMovementQuantity();
-    const auto& metrics2 = second.getMovementQuantity();
+    const auto& metrics1 = first.getMovementQuantityPoints();
+    const auto& metrics2 = second.getMovementQuantityPoints();
 
     assert(metrics1.size() == metrics2.size());
 
@@ -291,8 +294,8 @@ float compareHistFeatures(const MocapAnimation &first,const MocapAnimation &seco
 
 float pointMovementCorrelation2(const MocapAnimation &first,const MocapAnimation &second)
 {
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();
     auto movDir1 = first.getAxisMovementDirectionHist();
     auto movDir2 = second.getAxisMovementDirectionHist();
 
@@ -344,8 +347,8 @@ float pointMovementCorrelation2(const MocapAnimation &first,const MocapAnimation
 
 float totalMovementRelativeError(const MocapAnimation &first,const MocapAnimation &second)
 {
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();;
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();;
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -355,8 +358,8 @@ float totalMovementRelativeError(const MocapAnimation &first,const MocapAnimatio
 
 float dominantPoints(const MocapAnimation &first,const MocapAnimation &second)
 {
-    auto metrics1 = first.getMovementQuantity();
-    auto metrics2 = second.getMovementQuantity();;
+    auto metrics1 = first.getMovementQuantityPoints();
+    auto metrics2 = second.getMovementQuantityPoints();;
 
     float sum1 = std::accumulate(metrics1.begin(), metrics1.end(), 0.0f);
     float sum2 = std::accumulate(metrics2.begin(), metrics2.end(), 0.0f);
@@ -404,7 +407,7 @@ float pointDistance(const MocapAnimation &first,const MocapAnimation &second)
 {
     float error = 0.0;
 
-    int size = (first.frames() < second.frames()) ? first.frames() : second.frames();
+    const int size = std::min(first.frames(),second.frames());
 
     for(int i = 0; i < size; ++i)
     {
@@ -416,7 +419,26 @@ float pointDistance(const MocapAnimation &first,const MocapAnimation &second)
 
     assert(error >= 0.0f);
 
-    return error/(float) size;
+    return error;
+}
+
+float pointDistanceNorm(const MocapAnimation &first,const MocapAnimation &second)
+{
+    float error = 0.0;
+
+    const int size = std::min(first.frames(),second.frames());
+
+    for(int i = 0; i < size; ++i)
+    {
+        for(int j = 0; j < 31; ++j)
+        {
+            error += cv::norm(first(j,i) - second(j,i));
+        }
+    }
+
+    assert(error >= 0.0f);
+
+    return error/static_cast<float>(size);
 }
 
 
@@ -566,41 +588,6 @@ float MDDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
     return mGamma.at<float>(first.frames() - 2,second.frames() - 2)/std::max(first.frames(),second.frames());
 }
 
-float discreteVoxels(const MocapAnimation &first,const MocapAnimation &second)
-{
-    auto firstVoxels = first.getVoxelMap();
-    auto secondVoxels = second.getVoxelMap();
-
-    int missCounter = 0;
-
-    for (auto &x : firstVoxels.keys())
-    {
-        for (auto &y : firstVoxels[x].keys())
-        {
-            for (auto &z : firstVoxels[x][y].keys())
-            {
-                missCounter += std::abs(firstVoxels[x][y][z] - secondVoxels[x][y][z]);
-            }
-        }
-    }
-
-    firstVoxels = first.getVoxelMap();
-    secondVoxels = second.getVoxelMap();
-
-    for (auto &x : secondVoxels.keys())
-    {
-        for (auto &y : secondVoxels[x].keys())
-        {
-            for (auto &z : secondVoxels[x][y].keys())
-            {
-                missCounter += std::abs(firstVoxels[x][y][z] - secondVoxels[x][y][z]);
-            }
-        }
-    }
-
-    return missCounter/static_cast<float>((first.frames() + second.frames())*NUM_OF_NODES);
-}
-
 float fourierDescriptors(const MocapAnimation &first,const MocapAnimation &second)
 {
     auto fdFirst = first.getAxisFourierDescriptor();
@@ -655,6 +642,44 @@ float pointCorrelationVariance(const MocapAnimation &first,const MocapAnimation 
     }
 
     return 0.0f;
+}
+
+float MSEVoxels(const MocapAnimation &first,const MocapAnimation &second)
+{
+    return static_cast<float>(first.getVoxelMap().MSE(second.getVoxelMap()));
+}
+
+float DICECoefficientVoxels(const MocapAnimation &first,const MocapAnimation &second)
+{
+    cimg_library::CImg<int> f = first.getVoxelMap();
+    cimg_library::CImg<int> s = second.getVoxelMap();
+
+    cimg_library::CImg<int> tp = f.get_min(s);
+    cimg_library::CImg<int> fp = f - tp;
+    cimg_library::CImg<int> fn = s - tp;
+
+    auto tpHist = tp.get_histogram(2,0,1);
+    auto fpHist = fp.get_histogram(2,0,1);
+    auto fnHist = fn.get_histogram(2,0,1);
+
+    float dice = 2.0f*static_cast<float>(tpHist(1))/static_cast<float>((2*tpHist(1) + fpHist(1) + fnHist(1)));
+
+    if(dice < 0.001f)
+    {
+        return std::numeric_limits<float>::max();
+    }
+
+    return 1.0f/dice;
+}
+
+float DistanceTransformVoxels(const MocapAnimation &first,const MocapAnimation &second)
+{
+    cimg_library::CImg<int> f = first.getVoxelMap();
+    cimg_library::CImg<int> s = second.getVoxelMap();
+
+    float error = 0.0;
+
+    return error;
 }
 
 } //SimilarityFunctions

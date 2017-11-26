@@ -1,3 +1,5 @@
+#include "mocapanimation.h"
+
 #include "resultstats.hpp"
 
 ResultMetrics::ResultMetrics(QVector<Result> &results) :
@@ -13,11 +15,6 @@ float ResultMetrics::getAccuracy(const int numOfResults) const
 
     for (int i = 0; i < m_results.size(); ++i)
     {
-        if (m_skipCategories.contains(m_results[i].animation()->getRealCategory()))
-        {
-            continue;
-        }
-
         ++animsCounter;
 
         if (m_results[i].isCategoryMatched(numOfResults))
@@ -38,11 +35,6 @@ QMap<int16_t, qreal> ResultMetrics::getCategoryAccuracy(const int numOfResults) 
     {
         int16_t cat = m_results[i].animation()->getRealCategory();
 
-        if (m_skipCategories.contains(cat))
-        {
-            continue;
-        }
-
         ++animCounters[cat];
 
         if (m_results[i].isCategoryMatched(numOfResults))
@@ -51,7 +43,7 @@ QMap<int16_t, qreal> ResultMetrics::getCategoryAccuracy(const int numOfResults) 
         }
     }
 
-    for (int16_t val : matchedCounters.keys())
+    for (int16_t val : animCounters.keys())
     {
         matchedCounters[val] /= animCounters[val];
     }

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "mocapanimation.h"
+
 Result::Result(const MocapAnimation *anim,const QVector<QPair<float, MocapAnimation *> > distance)
     : m_animation(anim),
       m_distance(distance)
@@ -24,6 +26,8 @@ void Result::printResult()
                   << " first matched " << firstMatched() << std::endl;
     }
 }
+
+bool Result::isCategoryMatched() const {return m_animation->getRealCategory() == m_distance.first().second->getRealCategory();}
 
 bool Result::isCategoryMatched(const int noRes) const
 {
@@ -66,5 +70,5 @@ int Result::firstMatched()
          }
     }
 
-    return std::numeric_limits<size_t>::max();
+    return -1;
 }

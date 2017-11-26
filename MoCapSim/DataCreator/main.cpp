@@ -1,12 +1,14 @@
 #include <QCoreApplication>
+#include <QDir>
+#include <QDebug>
+
 
 #include "functions.h"
 
 #include <similaritymatrixcreator.h>
 #include <modelfactory.h>
 
-#include <QDir>
-#include <QDebug>
+
 
 int main(int /*argc*/, char *argv[])
 {

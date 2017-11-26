@@ -1,10 +1,13 @@
-#include "animplayer.h"
-#include "ui_animplayer.h"
-
 #include <QLayout>
 
 #include <Qt3DCore/QEntity>
 #include <Qt3DCore/QAspectEngine>
+
+#include <Qt3DExtras/QSphereMesh>
+#include <Qt3DExtras/QCylinderMesh>
+#include <Qt3DExtras/Qt3DWindow>
+#include <Qt3DCore/QTransform>
+#include <Qt3DCore/QEntity>
 
 #include <Qt3DRender/QCamera>
 #include <Qt3DRender/QCameraLens>
@@ -14,6 +17,10 @@
 #include <Qt3DExtras/QOrbitCameraController>
 
 #include <Qt3DInput/QAbstractPhysicalDevice>
+
+#include "ui_animplayer.h"
+#include "animplayer.h"
+
 
 AnimPlayer::AnimPlayer(QWidget *parent) :
     QWidget(parent),
@@ -52,22 +59,35 @@ void AnimPlayer::addAnimation(MocapAnimation *anim)
     Qt3DExtras::QPhongMaterial *material = new Qt3DExtras::QPhongMaterial(rootEntity);
     material->setDiffuse(QColor::fromRgb((rand()%2)*r,g,b,128));
 
+    std::vector<std::array<BodyNode*,31> > tree = anim->getTreePosesInTime();
+
     for(int i = 0; i < 31; ++i)
     {
-        // Sphereb
+        // Sphere
         Qt3DCore::QEntity *sphereEntity = new Qt3DCore::QEntity(rootEntity);
         Qt3DExtras::QSphereMesh *sphereMesh = new Qt3DExtras::QSphereMesh;
         sphereMesh->setRadius(0.23f);
-
+/*
+        // Bone
+        Qt3DCore::QEntity *boneEntity = new Qt3DCore::QEntity(rootEntity);
+        Qt3DExtras::QCylinderMesh *boneMesh = new Qt3DExtras::QCylinderMesh;
+        boneMesh->setRadius(0.1f);
+*/
         Qt3DCore::QTransform *sphereTransform = new Qt3DCore::QTransform();
         sphereTransform->setTranslation(QVector3D(0.0,0.0,0.0));
 
         sphereEntity->addComponent(sphereMesh);
         sphereEntity->addComponent(material);
         sphereEntity->addComponent(sphereTransform);
+/*
+        boneEntity->addComponent(boneMesh);
+        boneEntity->addComponent(material);
+        boneEntity->addComponent(sphereTransform);
+*/
 
         a->spheres.push_back(sphereEntity);
         a->transforms.push_back(sphereTransform);
+//        a->bones.push_back(boneEntity);
     }
 
     m_animations.push_back(a);
@@ -138,4 +158,18 @@ void AnimPlayer::setupCamera()
     camera_light->setWorldDirection(QVector3D(0.0f, -0.5f, -1.0f));
     camera_light->setColor(QColor::fromRgbF(1.0f, 1.0f, 1.0f, 1.0f));
     camera_light_ent->addComponent(camera_light);
+}
+
+void MocapAnimation3D::update(int time)
+{
+    if (time >= animation->frames())
+    {
+        return;
+    }
+
+    for (int i = 0; i < transforms.size(); ++i)
+    {
+        cv::Vec3f v = animation->operator()(i,time);
+        transforms[i]->setTranslation({v[0],v[1],v[2]});
+    }
 }

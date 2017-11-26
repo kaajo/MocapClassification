@@ -23,9 +23,6 @@ public:
 
 private:
     QVector<Result> &m_results;
-
-    QVector<int> m_skipCategories = {56, 57,58,59,60, 61 , 138 , 139};
-    //QVector<int> m_skipCategories;
 };
 
 #endif // RESULTMETRICS_HPP

@@ -1,12 +1,12 @@
 #ifndef RESULT_H
 #define RESULT_H
 
-#include "mocapanimation.h"
-
 #include <QPair>
 #include <QVector>
 
 #include <iostream>
+
+class MocapAnimation;
 
 class Result
 {
@@ -17,11 +17,10 @@ public:
     void printResult();
 
     ///stats
-    bool isCategoryMatched() const {return m_animation->getRealCategory() == m_distance.first().second->getRealCategory();}
     bool isCategoryMatched(const int noRes) const;
-
+    bool isCategoryMatched() const;
     inline size_t noMatched(const int noRes);
-    inline int firstMatched();
+    int firstMatched();
 
     ///getters/setters
     inline const MocapAnimation* animation() const {return m_animation;}

@@ -20,13 +20,15 @@ OBJECTS_DIR = release/obj
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    methodtester.cpp
+    methodtester.cpp \
+    categorymapper.cpp
 
 HEADERS  += mainwindow.h \
     functions.h \
     methodtester.h \
     helperfunctions.h \
-    comparefunctions.h
+    comparefunctions.h \
+    categorymapper.hpp
 
 FORMS    += mainwindow.ui
 
@@ -88,7 +90,8 @@ DEPENDPATH += $$PWD/../Visualization
 #else {
 #    # Release mode
 #    cuda.input = CUDA_SOURCES
-#    cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o
+#    cuda.output = $$CUDA_OBJECTS_DIR/${QMAKE_FILE_BASE}_cuda.o#include <QVector3D>
+#include <QDebug>
 #    cuda.commands = $$CUDA_DIR/bin/nvcc $$NVCC_OPTIONS $$CUDA_INC $$NVCC_LIBS --machine $$SYSTEM_TYPE -arch=$$CUDA_ARCH -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
 #    cuda.dependency_type = TYPE_C
 #    QMAKE_EXTRA_COMPILERS += cuda
@@ -99,3 +102,11 @@ DEPENDPATH += $$PWD/../../../../../../../usr/local/lib64
 
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv tbb
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/release/ -lX11
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/debug/ -lX11
+else:unix: LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/ -lX11
+
+INCLUDEPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu
+DEPENDPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu

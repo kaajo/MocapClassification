@@ -1,9 +1,9 @@
 #ifndef MODELBASE_H
 #define MODELBASE_H
 
-#include "mocapanimation.h"
-
 #include <QString>
+
+class MocapAnimation;
 
 class ModelFactory
 {
@@ -15,7 +15,7 @@ public:
     void save(const QString &path, const QVector<MocapAnimation*> anims);
 
 private:
-    MocapAnimation::MocapFrame parseCoordsLine(const QString &line);
+    QVector<QVector3D> parseCoordsLine(const QString &line);
 };
 
 #endif // MODELBASE_H

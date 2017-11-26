@@ -1,0 +1,282 @@
+#include "categorymapper.hpp"
+
+#include <mocapanimation.h>
+
+QHash<int16_t,int16_t> CategoryMapper::trans130to65Pair = QHash<int16_t,int16_t>({
+                                                                                     std::make_pair(22,57),
+                                                                                     std::make_pair(23,56),
+                                                                                     std::make_pair(24,59),
+                                                                                     std::make_pair(25,59),
+                                                                                     std::make_pair(26,60),
+                                                                                     std::make_pair(27,60),
+                                                                                     std::make_pair(28,64),
+                                                                                     std::make_pair(29,64),
+                                                                                     std::make_pair(30,58),
+                                                                                     std::make_pair(31,58),
+                                                                                     std::make_pair(32,43),
+                                                                                     std::make_pair(33,43),
+                                                                                     std::make_pair(34,43),
+                                                                                     std::make_pair(35,43),
+                                                                                     std::make_pair(36,58),
+                                                                                     std::make_pair(37,58),
+                                                                                     std::make_pair(38,37),
+                                                                                     std::make_pair(39,37),
+                                                                                     std::make_pair(40,37),
+                                                                                     std::make_pair(41,37),
+                                                                                     std::make_pair(42,17),
+                                                                                     std::make_pair(43,17),
+                                                                                     std::make_pair(44,17),
+                                                                                     std::make_pair(45,17),
+                                                                                     std::make_pair(46,17),
+                                                                                     std::make_pair(47,36),
+                                                                                     std::make_pair(48,36),
+                                                                                     std::make_pair(49,36),
+                                                                                     std::make_pair(50,36),
+                                                                                     std::make_pair(51,36),
+                                                                                     std::make_pair(52,62),
+                                                                                     std::make_pair(53,62),
+                                                                                     std::make_pair(54,62),
+                                                                                     std::make_pair(55,62),
+                                                                                     std::make_pair(56,61),
+                                                                                     std::make_pair(57,61),
+                                                                                     std::make_pair(58,18),
+                                                                                     std::make_pair(59,18),
+                                                                                     std::make_pair(60,63),
+                                                                                     std::make_pair(61,63),
+                                                                                     std::make_pair(62,16),
+                                                                                     std::make_pair(63,16),
+                                                                                     std::make_pair(64,61),
+                                                                                     std::make_pair(65,61),
+                                                                                     std::make_pair(66,63),
+                                                                                     std::make_pair(67,18),
+                                                                                     std::make_pair(68,18),
+                                                                                     std::make_pair(69,3),
+                                                                                     std::make_pair(70,8),
+                                                                                     std::make_pair(71,4),
+                                                                                     std::make_pair(72,9),
+                                                                                     std::make_pair(73,5),
+                                                                                     std::make_pair(74,10),
+                                                                                     std::make_pair(75,6),
+                                                                                     std::make_pair(76,11),
+                                                                                     std::make_pair(77,21),
+                                                                                     std::make_pair(78,21),
+                                                                                     std::make_pair(79,22),
+                                                                                     std::make_pair(80,22),
+                                                                                     std::make_pair(81,28),
+                                                                                     std::make_pair(82,28),
+                                                                                     std::make_pair(83,23),
+                                                                                     std::make_pair(84,23),
+                                                                                     std::make_pair(85,29),
+                                                                                     std::make_pair(86,29),
+                                                                                     std::make_pair(87,26),
+                                                                                     std::make_pair(88,26),
+                                                                                     std::make_pair(89,27),
+                                                                                     std::make_pair(90,27),
+                                                                                     std::make_pair(91,24),
+                                                                                     std::make_pair(92,24),
+                                                                                     std::make_pair(93,55),
+                                                                                     std::make_pair(94,55),
+                                                                                     std::make_pair(95,52),
+                                                                                     std::make_pair(96,53),
+                                                                                     std::make_pair(97,54),
+                                                                                     std::make_pair(98,54),
+                                                                                     std::make_pair(99,33),
+                                                                                     std::make_pair(100,33),
+                                                                                     std::make_pair(101,32),
+                                                                                     std::make_pair(102,32),
+                                                                                     std::make_pair(103,35),
+                                                                                     std::make_pair(104,35),
+                                                                                     std::make_pair(105,31),
+                                                                                     std::make_pair(106,31),
+                                                                                     std::make_pair(107,30),
+                                                                                     std::make_pair(108,30),
+                                                                                     std::make_pair(109,34),
+                                                                                     std::make_pair(110,34),
+                                                                                     std::make_pair(111,42),
+                                                                                     std::make_pair(112,42),
+                                                                                     std::make_pair(113,7),
+                                                                                     std::make_pair(114,7),
+                                                                                     std::make_pair(115,7),
+                                                                                     std::make_pair(116,7),
+                                                                                     std::make_pair(117,44),
+                                                                                     std::make_pair(118,44),
+                                                                                     std::make_pair(119,20),
+                                                                                     std::make_pair(120,20),
+                                                                                     std::make_pair(121,25),
+                                                                                     std::make_pair(122,48),
+                                                                                     std::make_pair(123,49),
+                                                                                     std::make_pair(124,38),
+                                                                                     std::make_pair(125,41),
+                                                                                     std::make_pair(126,51),
+                                                                                     std::make_pair(127,39),
+                                                                                     std::make_pair(128,50),
+                                                                                     std::make_pair(129,1),
+                                                                                     std::make_pair(130,1),
+                                                                                     std::make_pair(131,2),
+                                                                                     std::make_pair(132,2),
+                                                                                     std::make_pair(133,47),
+                                                                                     std::make_pair(134,12),
+                                                                                     std::make_pair(135,40),
+                                                                                     std::make_pair(136,0),
+                                                                                     std::make_pair(137,63),
+                                                                                     std::make_pair(138,0),
+                                                                                     std::make_pair(139,0),
+                                                                                     std::make_pair(141,13),
+                                                                                     std::make_pair(142,13),
+                                                                                     std::make_pair(143,13),
+                                                                                     std::make_pair(144,14),
+                                                                                     std::make_pair(145,14),
+                                                                                     std::make_pair(146,14),
+                                                                                     std::make_pair(147,15),
+                                                                                     std::make_pair(148,15),
+                                                                                     std::make_pair(149,15),
+                                                                                     std::make_pair(150,19),
+                                                                                     std::make_pair(151,45),
+                                                                                     std::make_pair(152,46)
+                                                                                 });
+
+/*
+22;57;turnRight;30
+23;56;turnLeft;30
+24;59;walkBackwards2StepsRstart;15
+25;59;walkBackwards4StepsRstart;15
+26;60;walkLeft2Steps;16
+27;60;walkLeft3Steps;16
+28;64;walkRightCrossFront3Steps;13
+29;64;walkRightCrossFront2Steps;16
+30;58;walk4StepsRstart;16
+31;58;walk2StepsRstart;31
+32;43;sneak2StepsRStart;16
+33;43;sneak4StepsRStart;16
+34;43;sneak2StepsLStart;16
+35;43;sneak4StepsLStart;15
+36;58;walk4StepsLstart;16
+37;58;walk2StepsLstart;31
+38;37;shuffle2StepsRStart;14
+39;37;shuffle4StepsRStart;12
+40;37;shuffle2StepsLStart;13
+41;37;shuffle4StepsLStart;13
+42;17;jogOnPlaceStartFloor2StepsRStart;14
+43;17;jogOnPlaceStartFloor4StepsRStart;14
+44;17;jogOnPlaceStartAir2StepsLStart;14
+45;17;jogOnPlaceStartAir4StepsLStart;14
+46;17;jogOnPlaceStartAir2StepsRStart;14
+47;36;runOnPlaceStartFloor2StepsRStart;15
+48;36;runOnPlaceStartFloor4StepsRStart;15
+49;36;runOnPlaceStartAir2StepsLStart;15
+50;36;runOnPlaceStartAir4StepsLStart;15
+51;36;runOnPlaceStartAir2StepsRStart;15
+52;62;walkOnPlace2StepsRStart;15
+53;62;walkOnPlace4StepsRStart;15
+54;62;walkOnPlace2StepsLStart;15
+55;62;walkOnPlace4StepsLStart;15
+56;61;walkLeftCircle4StepsLstart;2
+57;61;walkLeftCircle6StepsLstart;2
+58;18;jogRightCircle4StepsLstart;2
+59;18;jogRightCircle6StepsLstart;2
+60;63;walkRightCircle4StepsLstart;1
+61;63;walkRightCircle6StepsLstart;1
+62;16;jogLeftCircle4StepsRstart;17
+63;16;jogLeftCircle6StepsRstart;15
+64;61;walkLeftCircle4StepsRstart;18
+65;61;walkLeftCircle6StepsRstart;15
+66;63;walkRightCircle4StepsRstart;15
+67;18;jogRightCircle4StepsRstart;17
+68;18;jogRightCircle6StepsRstart;12
+69;3;depositFloorR;32
+70;8;grabFloorR;16
+71;4;depositHighR;28
+72;9;grabHighR;29
+73;5;depositLowR;29
+74;10;grabLowR;29
+75;6;depositMiddleR;29
+76;11;grabMiddleR;28
+77;21;kickLFront1Reps;29
+78;21;kickLFront2Reps;14
+79;22;kickLSide1Reps;26
+80;22;kickLSide2Reps;13
+81;28;punchRFront2Reps;15
+82;28;punchRFront1Reps;30
+83;23;kickRFront1Reps;30
+84;23;kickRFront2Reps;15
+85;29;punchRSide1Reps;28
+86;29;punchRSide2Reps;14
+87;26;punchLFront2Reps;15
+88;26;punchLFront1Reps;30
+89;27;punchLSide2Reps;15
+90;27;punchLSide1Reps;30
+91;24;kickRSide1Reps;30
+92;24;kickRSide2Reps;15
+93;55;throwStandingHighR;14
+94;55;throwStandingLowR;14
+95;52;throwBasketball;14
+96;53;throwFarR;14
+97;54;throwSittingHighR;14
+98;54;throwSittingLowR;14
+99;33;rotateArmsLForward1Reps;16
+100;33;rotateArmsLForward3Reps;16
+101;32;rotateArmsLBackward1Reps;16
+102;32;rotateArmsLBackward3Reps;16
+103;35;rotateArmsRForward1Reps;16
+104;35;rotateArmsRForward3Reps;16
+105;31;rotateArmsBothForward1Reps;16
+106;31;rotateArmsBothForward3Reps;16
+107;30;rotateArmsBothBackward1Reps;16
+108;30;rotateArmsBothBackward3Reps;16
+109;34;rotateArmsRBackward1Reps;16
+110;34;rotateArmsRBackward3Reps;16
+111;42;skier3RepsLstart;10
+112;42;skier1RepsLstart;30
+113;7;elbowToKnee3RepsRelbowStart;13
+114;7;elbowToKnee1RepsRelbowStart;27
+115;7;elbowToKnee1RepsLelbowStart;27
+116;7;elbowToKnee3RepsLelbowStart;13
+117;44;squat1Reps;52
+118;44;squat3Reps;13
+119;20;jumpingJack1Reps;52
+120;20;jumpingJack3Reps;13
+121;25;lieDownFloor;20
+122;48;standUpLieFloor;20
+123;49;standUpSitChair;20
+124;38;sitDownChair;20
+125;41;sitDownTable;20
+126;51;standUpSitTable;20
+127;39;sitDownFloor;20
+128;50;standUpSitFloor;20
+129;1;clap1Reps;17
+130;1;clap5Reps;17
+131;2;clapAboveHead1Reps;17
+132;2;clapAboveHead5Reps;14
+133;47;standUpKneelToStand;17
+134;12;hitRHandHead;13
+135;40;sitDownKneelTieShoes;17
+136;0;cartwheelLHandStart1Reps;21
+137;63;walkRightCircle6StepsRstart;10
+138;0;cartwheelRHandStart1Reps;3
+139;0;cartwheelLHandStart2Reps;4
+141;13;hopBothLegs1hops;
+142;13;hopBothLegs2hops;
+143;13;hopBothLegs3hops;
+144;14;hopLLeg1hops;
+145;14;hopLLeg2hops;
+146;14;hopLLeg3hops;
+147;15;hopRLeg1hops;
+148;15;hopRLeg2hops;
+149;15;hopRLeg3hops;
+150;19;jumpDown;
+151;45;staircaseDown3Rstart;
+152;46;staircaseUp3Rstart;
+ */
+
+CategoryMapper::CategoryMapper()
+{
+
+}
+
+void CategoryMapper::transform130to65(QVector<MocapAnimation *> anims)
+{
+    for (MocapAnimation* anim : anims)
+    {
+        anim->setRealCategory(trans130to65Pair[anim->getRealCategory()]);
+    }
+};

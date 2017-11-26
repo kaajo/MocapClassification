@@ -1,5 +1,3 @@
-#include "resultvisualization.hpp"
-#include "ui_resultvisualization.h"
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QBoxPlotSeries>
@@ -7,6 +5,10 @@
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QLineSeries>
+
+
+#include "ui_resultvisualization.h"
+#include "resultvisualization.hpp"
 
 QT_CHARTS_USE_NAMESPACE
 

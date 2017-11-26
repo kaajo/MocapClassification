@@ -1,8 +1,8 @@
-#include "methodtester.h"
-
 #include <resultvisualization.hpp>
 
-QVector<int> MethodTester::m_skipCategories  = {56, 57,58,59,60, 61 , 138 , 139};
+#include "methodtester.h"
+
+#include <mocapanimation.h>
 
 MethodTester::MethodTester()
 {
@@ -55,12 +55,14 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
 
         for (const int noRes : std::get<3>(functions[f]))
         {
-            const float err = checkResultsError(results,noRes);
+            const float err = metr.getAccuracy(noRes);
 
             error.push_back(err);
         }
 
         printMethodError(std::get<0>(functions[f]),std::get<3>(functions[f]),error);
+        printMethodCatAccuracy(metr.getCategoryAccuracy(1));
+        printAverageFirstMatch(results);
         error.clear();
     }
 }
@@ -93,37 +95,38 @@ float MethodTester::testMethod(const QVector<MocapAnimation *> &anims, const QVe
         results.push_back(r);
     }
 
-    float error = checkResultsError(results,{1});
+    ResultMetrics metr(results);
+
+    float error = metr.getAccuracy(1);
 
     printMethodError(anims.size(),{1},{error});
 
     return error;
 }
 
-float MethodTester::checkResultsError(const QVector<Result> &prevResults, const int numOfResults)
+void MethodTester::printMethodCatAccuracy(QMap<int16_t, qreal> catAcc)
 {
-    int trueCounter = 0;
-    int animsCounter = 0;
+    qreal avg = 0.0;
 
-    for (int i = 0; i < prevResults.size(); ++i)
+    std::cout << "accuracy in categories: " << std::endl;
+    for (int16_t k : catAcc.keys())
     {
-        if (!m_skipCategories.contains(prevResults[i].animation()->getRealCategory()))
-        {
-            ++animsCounter;
-        }
-        else
-        {
-            //std::cout << "skip anim ID: " << prevResults[i].animation()->getId() << std::endl;
-            continue;
-        }
-
-        if (prevResults[i].isCategoryMatched(numOfResults))
-        {
-            ++trueCounter;
-        }
+        avg += catAcc[k];
+        std::cout << k << " " << catAcc[k] << std::endl;
     }
 
-    return trueCounter/(float)animsCounter;
+    avg /= static_cast<qreal>(catAcc.size());
+
+    qreal standDev = 0.0;
+
+    for (int16_t k : catAcc.keys())
+    {
+        standDev +=  std::pow(catAcc[k] - avg,2);
+    }
+
+    standDev = sqrt(1.0/(static_cast<qreal>(catAcc.size()) - 1) * standDev);
+
+    std::cout << "stand. dev. :" << standDev << std::endl;
 }
 
 void MethodTester::printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output)
@@ -131,12 +134,27 @@ void MethodTester::printMethodError(int numOfPrevResults, QVector<int> checkSet,
     std::cout << "used " << numOfPrevResults << " from previous method" << std::endl;
     for(int i = 0; i < output.size(); ++i)
     {
-        std::cout << checkSet[i] << ": " << output[i] * 100.0f << " %" << std::endl;
+        std::cout << checkSet[i] << " " << output[i] * 100.0f << " %" << std::endl;
     }
     std::cout << "________________" << std::endl;
 }
 
-void MethodTester::setSkipCategories(const QVector<int> &skipCategories)
+void MethodTester::printAverageFirstMatch(QVector<Result> &results)
 {
-    m_skipCategories = skipCategories;
+    int sum = 0;
+
+    for (int i = 0; i < results.size(); ++i)
+    {
+        int matched = results[i].firstMatched();
+        if (matched > 0)
+        {
+            sum += matched;
+        }
+    }
+
+    std::cout << "avg first match: "
+              << static_cast<float>(sum)/static_cast<float>(results.size())
+              << std::endl;
 }
+
+

@@ -1,14 +1,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "mocapanimation.h"
-#include "modelfactory.h"
-
-#include <metricvisualization.h>
-#include <animplayer.h>
-
 #include <QMainWindow>
 #include <QListWidget>
+
+
+class MocapAnimation;
+class AnimPlayer;
+class MetricVisualization;
 
 namespace Ui {
 class MainWindow;
@@ -24,6 +23,10 @@ public:
 
     QVector<MocapAnimation *> anims() const;
 
+    void loadHDM14(const QString& path, const int maxNOAnims = -1);
+    void loadHDM65(const QString& path, const int maxNOAnims = -1);
+    void loadHDM122(const QString& path, const int maxNOAnims = -1);
+
 private slots:
     void animationChecked(QListWidgetItem *item);
 
@@ -35,6 +38,9 @@ private:
     QVector<MocapAnimation*> m_anims;
     MetricVisualization *m_vis = nullptr;
     AnimPlayer *m_animPlayer = nullptr;
+
+    void addAnimsToUI();
+    void filterAnims(QVector<int> skipCategories);
 
     void datasetStats();
 };

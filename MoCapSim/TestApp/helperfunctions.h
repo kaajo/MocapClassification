@@ -71,6 +71,11 @@ inline float MAPE2(const cv::Mat &h1,const cv::Mat &h2)
 
     for (int i = 0; i < h1.cols; ++i)
     {
+        if (h1.at<float>(i) == 0.0f && h2.at<float>(i) == 0.0f)
+        {
+            continue;
+        }
+
         if(h1.at<float>(i) != 0.0f)
         {
             error1 += std::abs((h1.at<float>(i) - h2.at<float>(i))/h1.at<float>(i));
@@ -83,6 +88,26 @@ inline float MAPE2(const cv::Mat &h1,const cv::Mat &h2)
     }
 
     return 100.0f * std::min(error1,error2)/h1.cols;
+}
+
+inline float SMAPE(const cv::Mat &h1,const cv::Mat &h2)
+{
+    float error = 0.0;
+
+    for (int i = 0; i < h1.cols; ++i)
+    {
+        if (h1.at<float>(i) == 0.0f && h2.at<float>(i) == 0.0f)
+        {
+            continue;
+        }
+
+        float n = std::fabs(h1.at<float>(i) - h2.at<float>(i));
+        float d = (std::fabs(h1.at<float>(i)) + std::fabs(h2.at<float>(i)))/2.0f;
+
+        error += n/d;
+    }
+
+    return 100.0f/static_cast<float>(h1.cols) * error;
 }
 
 inline float RMSE(const cv::Mat &h1,const cv::Mat &h2)

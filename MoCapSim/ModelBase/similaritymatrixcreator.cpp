@@ -1,10 +1,13 @@
-#include "similaritymatrixcreator.h"
-
-#include "modelfactory.h"
-
 #include <QDebug>
 #include <QDir>
 #include <QtConcurrent>
+
+
+#include "modelfactory.h"
+
+#include "similaritymatrixcreator.h"
+
+#include "modelfactory.h"
 
 SimilarityMatrixCreator::SimilarityMatrixCreator()
 {

@@ -15,10 +15,12 @@ enum class CompareHistogram {
     CHISQUARE = CV_COMP_CHISQR,
     INTERSECTION = CV_COMP_INTERSECT,
     BHATTACHARYYA = CV_COMP_BHATTACHARYYA,
-    MAE = 4,
-    MAPE = 5,
-    MAPE2 = 6,
-    RMSE = 7
+    CHISQUARE_NORM = 4,
+    MAE = 5,
+    MAPE = 6,
+    MAPE2 = 7,
+    SMAPE = 8,
+    RMSE = 9
 };
 
 double compareHistogramFunction(cv::Mat h1, cv::Mat h2,CompareHistogram method)
@@ -27,6 +29,7 @@ double compareHistogramFunction(cv::Mat h1, cv::Mat h2,CompareHistogram method)
     switch (method) {
     case CompareHistogram::BHATTACHARYYA :
     case CompareHistogram::INTERSECTION:
+    case CompareHistogram::CHISQUARE_NORM:
         normHistogram(h1);
         normHistogram(h2);
         break;
@@ -47,6 +50,10 @@ double compareHistogramFunction(cv::Mat h1, cv::Mat h2,CompareHistogram method)
         distance = std::min(cv::compareHist(h1,h2,static_cast<std::underlying_type<CompareHistogram>::type>(method)),
                             cv::compareHist(h2,h1,static_cast<std::underlying_type<CompareHistogram>::type>(method)));
         break;
+    case CompareHistogram::CHISQUARE_NORM:
+        distance = std::min(cv::compareHist(h1,h2,CV_COMP_CHISQR),
+                            cv::compareHist(h2,h1,CV_COMP_CHISQR));
+        break;
     case CompareHistogram::MAE:
         distance = static_cast<double>(MAE(h1,h2));
         break;
@@ -55,6 +62,9 @@ double compareHistogramFunction(cv::Mat h1, cv::Mat h2,CompareHistogram method)
         break;
     case CompareHistogram::MAPE2:
         distance = static_cast<double>(MAPE2(h1,h2));
+        break;
+    case CompareHistogram::SMAPE:
+        distance = static_cast<double>(SMAPE(h1,h2));
         break;
     case CompareHistogram::RMSE:
         distance = static_cast<double>(RMSE(h1,h2));

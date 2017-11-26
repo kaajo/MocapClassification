@@ -1,9 +1,12 @@
-#include "modelfactory.h"
+
 
 #include <QFile>
 #include <QTextStream>
 
 #include <QLoggingCategory>
+
+#include "modelfactory.h"
+#include "mocapanimation.h"
 
 ModelFactory::ModelFactory()
 {
@@ -48,7 +51,12 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
         }
         else
         {
-            currentPoses.push_back(parseCoordsLine(line));
+            QVector<QVector3D> frame = parseCoordsLine(line);
+
+            if (frame.size() > 1)
+            {
+                currentPoses.push_back(frame);
+            }
         }
 
         if (maxNumber != -1 && retVal.size() >= maxNumber)
@@ -71,7 +79,7 @@ void ModelFactory::save(const QString &path, const QVector<MocapAnimation *> ani
     //TODO
 }
 
-MocapAnimation::MocapFrame ModelFactory::parseCoordsLine(const QString &line)
+QVector<QVector3D> ModelFactory::parseCoordsLine(const QString &line)
 {
     QStringList coordsList = line.split(";", QString::SkipEmptyParts);
 

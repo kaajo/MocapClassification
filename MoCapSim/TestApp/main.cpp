@@ -1,7 +1,12 @@
+
+
 #include "mainwindow.h"
 
-#include "functions.h"
+
 #include "methodtester.h"
+
+#include <iostream>
+#include <chrono>
 
 #include <QApplication>
 
@@ -12,6 +17,8 @@
 
 #include <modelfactory.h>
 #include <similaritymatrixcreator.h>
+
+#include "functions.h"
 
 /*
 #include <cuda_runtime.h>
@@ -30,6 +37,105 @@ bool areEqual(const cv::Mat& a, const cv::Mat& b) {
 }
 */
 
+
+
+double checkSpeedCreateDescriptor(int repeatTimes, int index, QVector<MocapAnimation *> anims)
+{
+    double sum = 0.0;
+    for (int i = 0 ; i < repeatTimes; ++i)
+    {
+        sum += anims[index]->PPScomputeAxisMovementQuantity();
+    }
+    sum /= static_cast<double>(repeatTimes);
+
+    std::cout << anims[index]->frames() << " " << sum << std::endl;
+    return sum;
+}
+
+void testSpeedDatasetCreate(QVector<MocapAnimation*> anims)
+{
+    std::sort(anims.begin(),anims.end(),[](const MocapAnimation* left,const MocapAnimation* right){return left->frames() < right->frames();});
+
+    std::vector<double> PPS(anims.size(),0.0);
+    for (int i = 0; i < anims.size(); ++i)
+    {
+        PPS[i] = checkSpeedCreateDescriptor(1000,i,anims);
+    }
+}
+
+double checkSpeedCompareDescriptor(int repeatTimes, QVector<MocapAnimation *> anims,CompareHist::CompareHistogram method)
+{
+    double sum = 0.0;
+    for (int i = 0 ; i < repeatTimes; ++i)
+    {
+        int randFirst = rand() % anims.size();
+        int randSecond = rand() % anims.size();
+        std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+        SimilarityFunctions::movementAmount(*anims[randFirst],*anims[randSecond],method);
+        std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+        sum += std::chrono::duration_cast<std::chrono::duration<double>>(end-start).count();
+    }
+    sum /= static_cast<double>(repeatTimes);
+
+    std::cout << "avg time: " << sum << std::endl;
+    return sum;
+}
+
+/*
+void testSpeedDatasetCompare(QVector<MocapAnimation*> anims)
+{
+    std::sort(anims.begin(),anims.end(),[](const MocapAnimation* left,const MocapAnimation* right){return left->frames() < right->frames();});
+
+    std::vector<double> PPS(anims.size(),0.0);
+    for (int i = 0; i < anims.size(); ++i)
+    {
+        if (anims[i]->frames() < 234) continue;
+
+        PPS[i] = checkSpeedCompareDescriptor(1000,i,anims);
+    }
+}
+*/
+
+void printDescriptors(QVector<MocapAnimation*> anims, std::vector<int> indexes)
+{
+    for (size_t i = 0; i < indexes.size(); ++i)
+    {
+        std::cout << "anim " << indexes[i] << ":" << std::endl;
+
+        auto curAnim = anims[indexes[i]];
+
+        float totalMovement = curAnim->getTotalMovementQuantity();
+        std::cout << "total movement: " << totalMovement << std::endl;
+
+        cv::Vec3f movementQAxisReduced = curAnim->getMovementQuantityAxisReduced();
+        std::cout << "movementQAxisReduced: " << std::endl;
+        std::cout << movementQAxisReduced[0] << std::endl;
+        std::cout << movementQAxisReduced[1] << std::endl;
+        std::cout << movementQAxisReduced[2] << std::endl;
+
+        std::array<float,31> movementQPoints = curAnim->getMovementQuantityPoints();
+        std::cout << "movementQPoints: " << std::endl;
+        for (size_t i = 0; i < movementQPoints.size(); ++i)
+        {
+            std::cout << movementQPoints[i] << std::endl;
+        }
+
+        std::array<cv::Vec3f,31> axisMovementQ = curAnim->getAxisMovementQuantity();
+        std::cout << "axisMovementQ: " << std::endl;
+        for (size_t i = 0; i < axisMovementQ.size(); ++i)
+        {
+            std::cout << axisMovementQ[i][0] << std::endl;
+            std::cout << axisMovementQ[i][1] << std::endl;
+            std::cout << axisMovementQ[i][2] << std::endl;
+        }
+        std::cout << "____________________________________" << std::endl;
+    }
+}
+
+const QString hdm130path = "/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data";
+const QString hdm14path = "/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/HDM05-14.data";
+
 int main(int argc, char *argv[])
 {
     srand(time(NULL));
@@ -38,10 +144,15 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.setWindowState(Qt::WindowMaximized);
+
+    //w.loadHDM122(hdm130path);
+    w.loadHDM65(hdm130path);
+    //w.loadHDM14(hdm14path);
+
     w.show();
 
     auto anims = w.anims();
-
+/*
     SimilarityMatrixCreator creator;
     //creator.createSimilarityImage(anims,SimilarityFunctions::MDDDTWNorm,"/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew");
     cv::Mat pointMovementCorrelationErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementCorrelation.exr");
@@ -50,16 +161,23 @@ int main(int argc, char *argv[])
     cv::Mat pointMovementAbsoluteErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementAbsoluteError.exr");
     cv::Mat MDDTWMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDTW.exr");
     cv::Mat MDDDTWNormMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew.exr");
+*/
+    //printDescriptors(anims, {0,4});
+/*
+    cimg_library::CImgDisplay display;
+    display.assign(anims[0]->getVoxelMap());
+*/
 
-    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),
-                                    cv::Mat(),{1,2,5,10,15,20,50})});
-    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesQuantityAcc, cv::Mat(),{1,2,5,10,15,20,50})});
+   // MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::DICECoefficientVoxels, cv::Mat(),{1,2,5,10,15,20,50})});
+
+//    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,2,5,10,15,20,50})});
+//    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesQuantityAcc, cv::Mat(),{1,2,5,10,15,20,50})});
 
 
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity,cv::Mat(),{1,2,5,10,15,20,50}),
                                     FunctionProp(50,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,5})});
-*/    /*
+
 used 50 from previous method
 1: 29.915 %
 2: 40.5562 %
@@ -67,6 +185,23 @@ used 50 from previous method
 
 */
 
+    /*
+    auto img = anims[0]->getVoxelMap();
+
+    for (int i = 0; i < img.width(); ++i)
+    {
+
+        for (int j = 0; j < img.width(); ++j)
+        {
+            for (int k = 0; k < img.width(); ++k)
+            {
+                std::cout << img.atXYZ(i,j,k) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    */
 
     //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity,cv::Mat(),{1,2,5,10,15,20})});
     //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareAllAxesMovementQuantity2,cv::Mat(),{1,2,5,10,15,20})});
@@ -90,6 +225,28 @@ used 50 from previous method
     //56 - 61 , 138 , 139
     //TODO úspešnosť kategorie
 
+    //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointDistanceNorm,cv::Mat(),{1,2,3,4,5,10,15,20,50})});
+
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::DICECoefficientVoxels,cv::Mat(),{1,2,5,10,15,20,50}),
+                                    FunctionProp(50,std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,2,5,10,15,20,50}),
+                                    FunctionProp(10,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1})});
+/*
+    85.39% 122
+    96.7764 % 14
+*/
+
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,2,5,10,15,20,50}),
+                                    FunctionProp(50,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,5})});
+
+
+     * HBM05-65
+1: 90.7744 %
+2: 95.3633 %
+5: 98.6616 %
+*/
+
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20}),
                                     FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5}),
@@ -104,8 +261,8 @@ used 50 from previous method
     2: 93.8574 %
     5: 97.4227 %
 
-*/
 
+*/
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20})});
 

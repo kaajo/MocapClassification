@@ -2,15 +2,18 @@
 #define ANIMPLAYER_H
 
 #include <QWidget>
+#include <QTimer>
 
 #include <mocapanimation.h>
 
-#include <QTimer>
+namespace Qt3DCore {
+class QEntity;
+class QTransform;
+}
 
-#include <Qt3DExtras/QSphereMesh>
-#include <Qt3DExtras/Qt3DWindow>
-#include <Qt3DCore/QTransform>
-#include <Qt3DCore/QEntity>
+namespace Qt3DExtras {
+class Qt3DWindow;
+}
 
 namespace Ui {
 class AnimPlayer;
@@ -21,25 +24,15 @@ struct MocapAnimation3D
     ~MocapAnimation3D()
     {
         qDeleteAll(spheres);
+        qDeleteAll(bones);
     }
 
-    void update(int time)
-    {
-        if (time >= animation->frames())
-        {
-            return;
-        }
-
-        for (int i = 0; i < transforms.size(); ++i)
-        {
-            cv::Vec3f v = animation->operator()(i,time);
-            transforms[i]->setTranslation({v[0],v[1],v[2]});
-        }
-    }
+    void update(int time);
 
     MocapAnimation* animation;
     QVector<Qt3DCore::QEntity*> spheres;
     QVector<Qt3DCore::QTransform*> transforms;
+    QVector<Qt3DCore::QEntity*> bones;
 };
 
 class AnimPlayer : public QWidget

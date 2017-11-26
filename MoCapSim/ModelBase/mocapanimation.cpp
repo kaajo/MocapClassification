@@ -1,9 +1,14 @@
+#include <QtConcurrentMap>
+
 #include "mocapanimation.h"
 
-#include <QtConcurrentMap>
+#include <chrono>
+
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+
+typedef std::chrono::high_resolution_clock hiresclock;
 
 MocapAnimation::MocapAnimation(const int id, const int category, const QVector<MocapFrame> poses) :
     m_id(id),
@@ -26,8 +31,11 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 
     createTreeStructure();
 
-    computeMovementQuantity();
+    computeTotalMovementQuantity();
+    computeMovementQuantityAxisReduced();
+    computeMovementQuantityPoints();
     computeAxisMovementQuantity();
+
     computeAxisMovementDirectionHist();
     computeAxisMovementAcc();
     computeVoxels();
@@ -76,6 +84,50 @@ QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVecto
     return tmpRes;
 }
 
+double MocapAnimation::PPScomputetotalMovementQuantity()
+{
+    hiresclock::time_point start = hiresclock::now();
+    computeTotalMovementQuantity();
+    hiresclock::time_point end = hiresclock::now();
+
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+
+    return static_cast<double>(m_posesInTime.cols * m_posesInTime.rows)/time_span.count();
+}
+
+double MocapAnimation::PPScomputeMovementQuantityAxisReduced()
+{
+    hiresclock::time_point start = hiresclock::now();
+    computeMovementQuantityAxisReduced();
+    hiresclock::time_point end = hiresclock::now();
+
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+
+    return static_cast<double>(m_posesInTime.cols * m_posesInTime.rows)/time_span.count();
+}
+
+double MocapAnimation::PPScomputeAxisMovementQuantity()
+{
+    hiresclock::time_point start = hiresclock::now();
+    computeAxisMovementQuantity();
+    hiresclock::time_point end = hiresclock::now();
+
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+
+    return static_cast<double>(m_posesInTime.cols * m_posesInTime.rows)/time_span.count();
+}
+
+double MocapAnimation::PPScomputeMovementQuantityPoints()
+{
+    hiresclock::time_point start = hiresclock::now();
+    computeMovementQuantityPoints();
+    hiresclock::time_point end = hiresclock::now();
+
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+
+    return static_cast<double>(m_posesInTime.cols * m_posesInTime.rows)/time_span.count();
+}
+
 QPair<float,MocapAnimation*> MocapAnimation::mapFun(MocapAnimation *it,const MocapAnimation *anim, MocapAnimation::SimilarityFunction function)
 {
     return QPair<float,MocapAnimation*>(function(*anim,*it),it);
@@ -111,7 +163,42 @@ void MocapAnimation::createTreeStructure()
     }
 }
 
-void MocapAnimation::computeMovementQuantity()
+std::vector<std::array<BodyNode*,31>> MocapAnimation::getTreePosesInTime() const
+{
+    return m_treePosesInTime;
+}
+
+void MocapAnimation::computeTotalMovementQuantity()
+{
+    float q = 0.0;
+    for (size_t n = 0; n < 31; ++n)
+    {
+        for (int i = 1; i < m_posesInTime.cols; ++i)
+        {
+            q += cv::norm(m_posesInTime.at<cv::Vec3f>(n,i) - m_posesInTime.at<cv::Vec3f>(n,i-1));
+        }
+    }
+
+    m_totalMovementQuantity = q;
+}
+
+void MocapAnimation::computeMovementQuantityAxisReduced()
+{
+    cv::Vec3f q(0.0f,0.0f,0.0f);
+    for (size_t n = 0; n < 31; ++n)
+    {
+        for (int i = 1; i < m_posesInTime.cols; ++i)
+        {
+            cv::Vec3f diff;
+            cv::absdiff(m_posesInTime.at<cv::Vec3f>(n,i), m_posesInTime.at<cv::Vec3f>(n,i-1),diff);
+            q += diff;
+        }
+    }
+
+    m_movementQuantityAxisReduced = q;
+}
+
+void MocapAnimation::computeMovementQuantityPoints()
 {
     for (size_t n = 0; n < 31; ++n)
     {
@@ -122,7 +209,7 @@ void MocapAnimation::computeMovementQuantity()
             q += cv::norm(m_posesInTime.at<cv::Vec3f>(n,i) - m_posesInTime.at<cv::Vec3f>(n,i-1));
         }
 
-        m_movementQuantity[n] = q;
+        m_movementQuantityPoints[n] = q;
     }
 }
 
@@ -186,13 +273,27 @@ void MocapAnimation::computeAxisMovementAcc()
 
 void MocapAnimation::computeVoxels()
 {
+    int color = 1.0f;
+
     for (int n = 0; n < m_posesInTime.rows; ++n)
     {
         for (int i = 1; i < m_posesInTime.cols; ++i)
         {
-            const cv::Vec3f &pos = m_posesInTime.at<cv::Vec3f>(n,i);
+            const cv::Vec3f p = m_posesInTime.at<cv::Vec3f>(n,i);
+            const cv::Vec3f &pos = (m_posesInTime.at<cv::Vec3f>(n,i) + cv::Vec3f(20.0f,20.0f,20.0f)) * 5.0f/10.0f;
+            const cv::Vec3f &prevPos = (m_posesInTime.at<cv::Vec3f>(n,i-1) + cv::Vec3f(20.0f,20.0f,20.0f)) * 5.0f/10.0f;
 
-            ++m_voxelMap[std::nearbyint(pos[0])][std::nearbyint(pos[1])][std::nearbyint(pos[2])];
+            const cv::Vec3i &posi = cv::Vec3i(std::nearbyintf(pos[0]),std::nearbyintf(pos[1]),std::nearbyintf(pos[2]));
+            const cv::Vec3i &prevPosi = cv::Vec3i(std::nearbyintf(prevPos[0]),std::nearbyintf(prevPos[1]),std::nearbyintf(prevPos[2]));
+
+            if (prevPosi == posi)
+            {
+                m_voxelMap(posi[0],posi[1],posi[2]) = 1.0f;
+            }
+            else
+            {
+                m_voxelMap.draw_line(prevPosi[0],prevPosi[1],prevPosi[2],posi[0],posi[1],posi[2],&color);
+            }
         }
     }
 }
