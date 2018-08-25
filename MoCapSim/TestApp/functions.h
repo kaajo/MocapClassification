@@ -1,3 +1,20 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
@@ -44,6 +61,76 @@ float movementAmount(const MocapAnimation &first,const MocapAnimation &second, C
 
     return static_cast<float>(CompareHist::compareHistogramFunction(pnts1,pnts2,method));
 }
+
+float movementAmountV1V2(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
+{
+    const auto maq1 = first.getAxisMovementQuantity();
+    const auto maq2 = second.getAxisMovementQuantity();
+    const auto maqr1 = first.getMovementQuantityPoints();
+    const auto maqr2 = second.getMovementQuantityPoints();
+
+    cv::Mat pnts1, pnts2;
+    pnts1.create(1, maq1.size()*4,CV_32FC1);
+    pnts2.create(1, maq2.size()*4,CV_32FC1);
+
+    const int s = maq1.size();
+
+    for (int i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i) = maq1[i][0];
+        pnts2.at<float>(i) = maq2[i][0];
+        pnts1.at<float>(s+i) = maq1[i][1];
+        pnts2.at<float>(s+i) = maq2[i][1];
+        pnts1.at<float>(2*s+i) = maq1[i][2];
+        pnts2.at<float>(2*s+i) = maq2[i][2];
+        pnts1.at<float>(3*s+i) = maqr1[i];
+        pnts2.at<float>(3*s+i) = maqr2[i];
+    }
+
+    return static_cast<float>(CompareHist::compareHistogramFunction(pnts1,pnts2,method));
+}
+
+float movementAmountV1V2V3Length(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
+{
+    const auto maq1 = first.getAxisMovementQuantity();
+    const auto maq2 = second.getAxisMovementQuantity();
+    const auto maqr1 = first.getMovementQuantityPoints();
+    const auto maqr2 = second.getMovementQuantityPoints();
+    const auto maqar1 = first.getMovementQuantityAxisReduced();
+    const auto maqar2 = second.getMovementQuantityAxisReduced();
+
+
+    cv::Mat pnts1, pnts2;
+    pnts1.create(1, maq1.size()*4+4,CV_32FC1);
+    pnts2.create(1, maq2.size()*4+4,CV_32FC1);
+
+    const int s = maq1.size();
+
+    for (int i = 0; i < s; ++i)
+    {
+        pnts1.at<float>(i) = maq1[i][0];
+        pnts2.at<float>(i) = maq2[i][0];
+        pnts1.at<float>(s+i) = maq1[i][1];
+        pnts2.at<float>(s+i) = maq2[i][1];
+        pnts1.at<float>(2*s+i) = maq1[i][2];
+        pnts2.at<float>(2*s+i) = maq2[i][2];
+        pnts1.at<float>(3*s+i) = maqr1[i];
+        pnts2.at<float>(3*s+i) = maqr2[i];
+    }
+
+    pnts1.at<float>(4*s) = maqar1[0];
+    pnts1.at<float>(4*s+1) = maqar1[1];
+    pnts1.at<float>(4*s+2) = maqar1[2];
+    pnts1.at<float>(4*s+3) = first.frames();
+
+    pnts2.at<float>(4*s) = maqar2[0];
+    pnts2.at<float>(4*s+1) = maqar2[1];
+    pnts2.at<float>(4*s+2) = maqar2[2];
+    pnts2.at<float>(4*s+3) = second.frames();
+
+    return static_cast<float>(CompareHist::compareHistogramFunction(pnts1,pnts2,method));
+}
+
 
 float movementAmountAxisReduced(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
 {
@@ -529,7 +616,7 @@ float MDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
     return mGamma[first.frames() - 1][second.frames() - 1] / std::max(first.frames(),second.frames());
 }
 
-//http://msp.ewi.tudelft.nl/sites/default/files/DTW-vASCI.pdf
+
 float MDDDTW(const MocapAnimation &first,const MocapAnimation &second)
 {
     QVector<QVector<float>> mGamma(first.frames(), QVector<float>(second.frames(),1000000.0));
@@ -579,6 +666,36 @@ float MDDDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
                 cost += cv::norm(first(k,i) - second(k,j));
                 cost += std::pow(cv::norm(first(k,i+1)-first(k,i-1)) -
                                  cv::norm(second(k,j+1)-second(k,j-1)),2);
+            }
+
+            mGamma.at<float>(i,j) = cost + std::min({mGamma.at<float>(i-1,j), mGamma.at<float>(i,j-1), mGamma.at<float>(i-1,j-1)});
+        }
+    }
+
+    return mGamma.at<float>(first.frames() - 2,second.frames() - 2)/std::max(first.frames(),second.frames());
+}
+
+float MDCentralDTWNorm(const MocapAnimation &first,const MocapAnimation &second)
+{
+    cv::Mat mGamma(first.frames(), second.frames(), CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+    mGamma.at<float>(0,0) = 0.0f;
+
+    const int secSize = std::max(second.frames()/4, std::abs(first.frames()-second.frames()));
+
+    for(int i = 1; i < first.frames() -2; ++i)
+    {
+        const int maxj = std::min(second.frames() - 2, i+secSize);
+
+        for(int j = std::max(1, i - secSize); j < maxj; ++j)
+        {
+            float cost = 0.0f;
+
+            for (int k = 0; k < NUM_OF_NODES; ++k)
+            {
+                const float &fDiff = (cv::norm(first(k,i) - first(k,i-1)) + cv::norm(first(k,i+1) - first(k,i-1))/2.0f)/2.0f;
+                const float &sDiff = (cv::norm(second(k,j) - second(k,j-1)) + cv::norm(second(k,j+1) - second(k,j-1))/2.0f)/2.0f;
+
+                cost += std::abs(fDiff - sDiff);
             }
 
             mGamma.at<float>(i,j) = cost + std::min({mGamma.at<float>(i-1,j), mGamma.at<float>(i,j-1), mGamma.at<float>(i-1,j-1)});
@@ -678,6 +795,8 @@ float DistanceTransformVoxels(const MocapAnimation &first,const MocapAnimation &
     cimg_library::CImg<int> s = second.getVoxelMap();
 
     float error = 0.0;
+
+    //TODO future work
 
     return error;
 }

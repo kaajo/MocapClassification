@@ -1,3 +1,20 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <QtConcurrentMap>
 
 #include "mocapanimation.h"
@@ -17,16 +34,16 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 {
     for (int i = 0; i < poses.size(); ++i)
     {
-        std::array<BodyNode*,31> treePose;
+        //std::array<BodyNode*,31> treePose;
 
         for (int j = 0; j < poses[0].size(); ++j)
         {
             const auto &pos = cv::Vec3f(poses[i][j].x(),poses[i][j].y(),poses[i][j].z());
             m_posesInTime.at<cv::Vec3f>(j,i) = pos;
-            treePose[j] = new BodyNode(BodyNode::NODE(j+1),pos);
+            //treePose[j] = new BodyNode(BodyNode::NODE(j+1),pos);
         }
 
-        m_treePosesInTime.push_back(treePose);
+        //m_treePosesInTime.push_back(treePose);
     }
 
     createTreeStructure();
@@ -45,13 +62,6 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 
 MocapAnimation::~MocapAnimation()
 {
-    for (size_t i = 0; i < m_treePosesInTime.size(); ++i)
-    {
-        for (size_t j = 0; j < m_treePosesInTime[i].size(); ++j)
-        {
-            delete m_treePosesInTime[i][j];
-        }
-    }
 }
 
 QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const SimilarityFunction function, cv::Mat &distanceMat) const
@@ -121,6 +131,17 @@ double MocapAnimation::PPScomputeMovementQuantityPoints()
 {
     hiresclock::time_point start = hiresclock::now();
     computeMovementQuantityPoints();
+    hiresclock::time_point end = hiresclock::now();
+
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);
+
+    return static_cast<double>(m_posesInTime.cols * m_posesInTime.rows)/time_span.count();
+}
+
+double MocapAnimation::PPScomputeVoxels()
+{
+    hiresclock::time_point start = hiresclock::now();
+    computeVoxels();
     hiresclock::time_point end = hiresclock::now();
 
     std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(end-start);

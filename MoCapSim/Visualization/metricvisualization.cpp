@@ -1,3 +1,20 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <QLineEdit>
 #include <QLabel>
 #include <QSpacerItem>
@@ -24,30 +41,10 @@ MetricVisualization::MetricVisualization(QWidget *parent) :
 
     m_layout = new QVBoxLayout();
 
-    //setup buttons
-    auto lineEditDim = new QLineEdit(QString::number(curDim));
-    lineEditDim->setMaximumWidth(150);
-    connect(lineEditDim,&QLineEdit::textChanged,this,&MetricVisualization::onCurDimChange);
-    auto lineEditPointId = new QLineEdit(QString::number(curPointId));
-    lineEditPointId->setMaximumWidth(150);
-    connect(lineEditPointId,&QLineEdit::textChanged,this,&MetricVisualization::onCurPointidChange);
-
-    auto hlayout = new QHBoxLayout();
-    hlayout->addWidget(new QLabel("Dim: "));
-    hlayout->addWidget(lineEditDim);
-    hlayout->addWidget(new QLabel("PointID: "));
-    hlayout->addWidget(lineEditPointId);
-    hlayout->addSpacerItem(new QSpacerItem(1000,40,QSizePolicy::MinimumExpanding));
-    m_layout->addLayout(hlayout);
-
     //setup graphs
     setupMovementQuantityGraph();
     addLine(m_layout);
     setupAnimPropsGraph();
-    addLine(m_layout);
-    setupFourierDescGraph();
-    addLine(m_layout);
-    setupFourierDFCDescGraph();
     addLine(m_layout);
 
     auto widget = new QWidget();
@@ -88,8 +85,6 @@ void MetricVisualization::refreshGraphs()
 {
     refreshMovementQuantityGraph();
     refreshAnimPropsGraph();
-    refreshFourierDescGraph();
-    refreshFourierDFCDescGraph();
 }
 
 void MetricVisualization::addLine(QVBoxLayout *layout)
@@ -104,13 +99,22 @@ void MetricVisualization::addLine(QVBoxLayout *layout)
 
 void MetricVisualization::setupMovementQuantityGraph()
 {
-    m_movementQuantityChart = new QChart();
-    m_movementQuantityChart->setTitle("Node movement quantity (%)");
-    m_movementQuantityChart->setAnimationOptions(QChart::SeriesAnimations);
+    m_axisMovementQuantityChart = new QChart();
+    m_axisMovementQuantityChart->setTitle("Point movement quantity (every axis)");
+    m_axisMovementQuantityChart->setAnimationOptions(QChart::SeriesAnimations);
 
-    m_movementQuantitySeries = new QBarSeries();
-    m_movementQuantitySeries->setUseOpenGL(true);
-    m_movementQuantityChart->addSeries(m_movementQuantitySeries);
+    m_axisMovementQuantityChart->createDefaultAxes();
+    m_axisMovementQuantityChart->legend()->setVisible(true);
+    m_axisMovementQuantityChart->legend()->setAlignment(Qt::AlignBottom);
+
+    m_axisMovementQuantityVis = new QChartView(m_axisMovementQuantityChart);
+    m_axisMovementQuantityVis->setRenderHint(QPainter::Antialiasing);
+
+    m_layout->addWidget(m_axisMovementQuantityVis);
+
+    m_movementQuantityChart = new QChart();
+    m_movementQuantityChart->setTitle("Point movement quantity (every point)");
+    m_movementQuantityChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_movementQuantityChart->createDefaultAxes();
     m_movementQuantityChart->legend()->setVisible(true);
@@ -124,30 +128,46 @@ void MetricVisualization::setupMovementQuantityGraph()
 
 void MetricVisualization::refreshMovementQuantityGraph()
 {
-    m_movementQuantityChart->removeSeries(m_movementQuantitySeries);
-    m_movementQuantitySeries->clear();
+    m_axisMovementQuantityChart->removeAllSeries();
 
     for (int i = 0; i < m_curAnims.size(); ++i)
     {
-        QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
+        QLineSeries *series = new QLineSeries();
+        series->setName(QString::number(m_curAnims[i]->getId()));
 
-        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantityPoints();
+        const std::array<cv::Vec3f,numOfPoints> mq = m_curAnims[i]->getAxisMovementQuantity();
 
         for (int j = 0; j < numOfPoints; ++j)
         {
-            *set <<  mq[j];
+            series->append(j*3,mq[j][0]);
+            series->append(j*3+1,mq[j][1]);
+            series->append(j*3+2,mq[j][2]);
         }
 
-        m_movementQuantitySeries->append(set);
+        m_axisMovementQuantityChart->addSeries(series);
+        m_axisMovementQuantityChart->createDefaultAxes();
     }
-    m_movementQuantityChart->addSeries(m_movementQuantitySeries);
-    m_movementQuantityChart->createDefaultAxes();
+
+    m_movementQuantityChart->removeAllSeries();
+    for (int i = 0; i < m_curAnims.size(); ++i)
+    {
+        QLineSeries *series = new QLineSeries();
+        series->setName(QString::number(m_curAnims[i]->getId()));
+
+        const std::array<float,numOfPoints> mq = m_curAnims[i]->getMovementQuantityPoints();
+        for (int j = 0; j < numOfPoints; ++j)
+        {
+            series->append(j,mq[j]);
+        }
+
+        m_movementQuantityChart->addSeries(series);
+        m_movementQuantityChart->createDefaultAxes();
+    }
 }
 
 void MetricVisualization::setupAnimPropsGraph()
 {
     m_animPropsChart = new QChart();
-    m_animPropsChart->setTitle("Animations props");
     m_animPropsChart->setAnimationOptions(QChart::SeriesAnimations);
 
     m_animPropsSeries = new QBarSeries();
@@ -204,108 +224,3 @@ void MetricVisualization::refreshAnimPropsGraph()
     m_animPropsChart->createDefaultAxes();
     m_animPropsChart->setAxisX(axis, m_animPropsSeries);
 }
-
-void MetricVisualization::setupFourierDescGraph()
-{
-    m_fdChart = new QChart();
-    m_fdChart->setTitle("Fourier axis descriptors");
-    m_fdChart->setAnimationOptions(QChart::SeriesAnimations);
-
-    m_fdSeries = new QBarSeries();
-    m_fdSeries->setUseOpenGL(true);
-    m_fdChart->addSeries(m_fdSeries);
-
-    QStringList categories;
-
-    QBarCategoryAxis *axis = new QBarCategoryAxis();
-    axis->append(categories);
-
-    m_fdChart->createDefaultAxes();
-    m_fdChart->setAxisX(axis, m_fdSeries);
-
-    m_fdChart->legend()->setVisible(true);
-    m_fdChart->legend()->setAlignment(Qt::AlignBottom);
-
-    m_fdVis = new QChartView(m_fdChart);
-    m_fdVis->setRenderHint(QPainter::Antialiasing);
-
-    m_layout->addWidget(m_fdVis);
-}
-
-void MetricVisualization::refreshFourierDescGraph()
-{
-    m_fdChart->removeSeries(m_fdSeries);
-    m_fdSeries->clear();
-
-    for (int i = 0; i < m_curAnims.size(); ++i)
-    {
-        QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
-
-        const cv::Mat fd = m_curAnims[i]->getAxisFourierDescriptor()[curDim];
-
-        for (int j = 1; j < fd.cols && j < 50; ++j)
-        {
-            float val = fd.at<float>(curPointId,j);
-
-            *set << val;
-        }
-
-        m_fdSeries->append(set);
-    }
-
-    m_fdChart->addSeries(m_fdSeries);
-    m_fdChart->createDefaultAxes();
-}
-
-void MetricVisualization::setupFourierDFCDescGraph()
-{
-    m_fdDFCChart = new QChart();
-    m_fdDFCChart->setTitle("Fourier DFC descriptors");
-    m_fdDFCChart->setAnimationOptions(QChart::SeriesAnimations);
-
-    m_fdDFCSeries = new QBarSeries();
-    m_fdDFCSeries->setUseOpenGL(true);
-    m_fdDFCChart->addSeries(m_fdDFCSeries);
-
-    QStringList categories;
-
-    QBarCategoryAxis *axis = new QBarCategoryAxis();
-    axis->append(categories);
-
-    m_fdDFCChart->createDefaultAxes();
-    m_fdDFCChart->setAxisX(axis, m_fdDFCSeries);
-
-    m_fdDFCChart->legend()->setVisible(true);
-    m_fdDFCChart->legend()->setAlignment(Qt::AlignBottom);
-
-    m_fdDFCVis = new QChartView(m_fdDFCChart);
-    m_fdDFCVis->setRenderHint(QPainter::Antialiasing);
-
-    m_layout->addWidget(m_fdDFCVis);
-}
-
-void MetricVisualization::refreshFourierDFCDescGraph()
-{
-    m_fdDFCChart->removeSeries(m_fdDFCSeries);
-    m_fdDFCSeries->clear();
-
-    for (int i = 0; i < m_curAnims.size(); ++i)
-    {
-        QBarSet *set = new QBarSet(QString::number(m_curAnims[i]->getId()));
-
-        const cv::Mat fd = m_curAnims[i]->getDFCFourierDescriptor()[curDim];
-
-        for (int j = 1; j < fd.cols && j < 50; ++j)
-        {
-            float val = fd.at<float>(curPointId,j);
-
-            *set << val;
-        }
-
-        m_fdDFCSeries->append(set);
-    }
-
-    m_fdDFCChart->addSeries(m_fdDFCSeries);
-    m_fdDFCChart->createDefaultAxes();
-}
-

@@ -1,3 +1,20 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include <resultvisualization.hpp>
 
 #include "methodtester.h"
@@ -9,11 +26,13 @@ MethodTester::MethodTester()
 
 }
 
-void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVector<FunctionProp> &functions)
+void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVector<FunctionProp> &functions, bool verbose)
 {
     QVector<Result> results,resultsTmp;
     QVector<float> error;
     cv::Mat distMatrix;
+
+    std::cout << "______________________________" << std::endl;
 
     for (int i = 0; i < anims.size(); ++i)
     {
@@ -46,7 +65,11 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
             Result r(anims[i],res);
 
             resultsTmp.push_back(r);
-            r.printResult();
+
+            if(verbose)
+            {
+                r.printResult();
+            }
         }
         results = resultsTmp;
         resultsTmp.clear();
@@ -61,7 +84,7 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
         }
 
         printMethodError(std::get<0>(functions[f]),std::get<3>(functions[f]),error);
-        printMethodCatAccuracy(metr.getCategoryAccuracy(1));
+        printMethodCatAccuracy(metr.getCategoryAccuracy(1),verbose);
         printAverageFirstMatch(results);
         error.clear();
     }
@@ -104,15 +127,22 @@ float MethodTester::testMethod(const QVector<MocapAnimation *> &anims, const QVe
     return error;
 }
 
-void MethodTester::printMethodCatAccuracy(QMap<int16_t, qreal> catAcc)
+void MethodTester::printMethodCatAccuracy(QMap<int16_t, qreal> catAcc, bool verbose)
 {
     qreal avg = 0.0;
 
-    std::cout << "accuracy in categories: " << std::endl;
+    if (verbose)
+    {
+        std::cout << "accuracy in categories: " << std::endl;
+    }
+
     for (int16_t k : catAcc.keys())
     {
         avg += catAcc[k];
-        std::cout << k << " " << catAcc[k] << std::endl;
+        if (verbose)
+        {
+            std::cout << k << " " << catAcc[k] << std::endl;
+        }
     }
 
     avg /= static_cast<qreal>(catAcc.size());
@@ -142,18 +172,20 @@ void MethodTester::printMethodError(int numOfPrevResults, QVector<int> checkSet,
 void MethodTester::printAverageFirstMatch(QVector<Result> &results)
 {
     int sum = 0;
+    int count = 0;
 
     for (int i = 0; i < results.size(); ++i)
     {
         int matched = results[i].firstMatched();
         if (matched > 0)
         {
+            count++;
             sum += matched;
         }
     }
 
     std::cout << "avg first match: "
-              << static_cast<float>(sum)/static_cast<float>(results.size())
+              << static_cast<float>(sum)/static_cast<float>(count)
               << std::endl;
 }
 

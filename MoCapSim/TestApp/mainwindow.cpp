@@ -1,5 +1,24 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QDebug>
+
 
 #include <animplayer.h>
 
@@ -10,7 +29,6 @@
 
 #include <opencv2/opencv.hpp>
 #include "modelfactory.h"
-
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -48,6 +66,7 @@ void MainWindow::animationChecked(QListWidgetItem *item)
 
 void MainWindow::loadHDM14(const QString &path, const int maxNOAnims)
 {
+    qDebug() << "";
     loadDataset(path,maxNOAnims);
     filterAnims({1,14});
     datasetStats();
@@ -65,7 +84,6 @@ void MainWindow::loadHDM65(const QString &path, const int maxNOAnims)
 void MainWindow::loadHDM122(const QString &path, const int maxNOAnims)
 {
     loadDataset(path,maxNOAnims);
-
     filterAnims({56, 57,58,59,60, 61 , 138 , 139});
     datasetStats();
     addAnimsToUI();
@@ -74,6 +92,7 @@ void MainWindow::loadHDM122(const QString &path, const int maxNOAnims)
 bool MainWindow::loadDataset(const QString &path, const int maxNOAnims)
 {
     ModelFactory factory;
+    qDeleteAll(m_anims);
     m_anims = factory.load(path, maxNOAnims);
 
     if (m_anims.empty())

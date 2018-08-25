@@ -1,4 +1,19 @@
+/*
+    Copyright (C) 2017  Miroslav Krajíček
 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #include "mainwindow.h"
 
@@ -82,6 +97,26 @@ double checkSpeedCompareDescriptor(int repeatTimes, QVector<MocapAnimation *> an
     return sum;
 }
 
+void checkSpeed(int repeatTimes,int animId, QVector<MocapAnimation *> anims, MocapAnimation::SimilarityFunction fun)
+{
+    for (int a = 0; a < anims.size(); ++a)
+    {
+        double sum = 0.0;
+        for (int i = 0 ; i < repeatTimes; ++i)
+        {
+            std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+            fun(*anims[animId],*anims[i]);
+            std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+            sum += std::chrono::duration_cast<std::chrono::duration<double>>(end-start).count();
+        }
+        sum /= static_cast<double>(repeatTimes);
+
+        std::cout << sum << std::endl;
+    }
+
+}
+
 /*
 void testSpeedDatasetCompare(QVector<MocapAnimation*> anims)
 {
@@ -145,22 +180,135 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.setWindowState(Qt::WindowMaximized);
 
-    //w.loadHDM122(hdm130path);
-    w.loadHDM65(hdm130path);
-    //w.loadHDM14(hdm14path);
+    /*
+    for (int i = 0; i < anims.size(); ++i)
+    {
+        checkSpeedCreateDescriptor(1000,i,anims);
+    }
+    */
 
-    w.show();
-
-    auto anims = w.anims();
-/*
     SimilarityMatrixCreator creator;
-    //creator.createSimilarityImage(anims,SimilarityFunctions::MDDDTWNorm,"/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew");
-    cv::Mat pointMovementCorrelationErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementCorrelation.exr");
+    //creator.createSimilarityImage(anims122,SimilarityFunctions::DICECoefficientVoxels,"/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM122");
+/*    cv::Mat pointMovementCorrelationErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementCorrelation.exr");
     cv::Mat totalMovementRelativeErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","totalMovementRelativeError.exr");
     cv::Mat discreteVoxelsMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","discreteVoxels1.exr");
     cv::Mat pointMovementAbsoluteErrorMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","pointMovementAbsoluteError.exr");
-    cv::Mat MDDTWMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDTW.exr");
-    cv::Mat MDDDTWNormMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormNew.exr");
+*///  cv::Mat MDDTWMatrix = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDTW.exr");
+
+
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    w.loadHDM122(hdm130path);
+    auto anims122 = w.anims();
+    cv::Mat MDDDTWNormMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM122.exr");
+    cv::Mat DiceVoxelsMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM122.exr");
+    //MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix122,{1,2,3,4,5,10,15,20,50})},false);
+
+    checkSpeed(1000,0,anims122,SimilarityFunctions::MSEVoxels);
+
+    /*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix122,{1,2,3,4,5})},false);
+    }
+*/
+    //MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+    //MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix122,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+/*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix122,{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix122,{1,2,3,4,5})},false);
+    }
+*/
+    /*
+    for (int i = 2; i < 20; ++i)
+    {
+        MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{50}),
+                                           FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix122,{40}),
+                                           FunctionProp(40,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{i}),
+                                           FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix122,{1,2,3,4,5}),
+                                           FunctionProp(20,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix122,{1,2,3,4,5})},false);
+    }
+    */
+
+/*
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    w.loadHDM65(hdm130path);
+    auto anims65 = w.anims();
+    cv::Mat MDDDTWNormMatrix65 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM65.exr");
+    cv::Mat DiceVoxelsMatrix65 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM65.exr");
+*/
+    //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix65,{1,2,3,4,5,10,15,20,50})},false);
+/*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{1,2,3,4,5})},false);
+    }
+*/
+    //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38})},false);
+    //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix65,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+/*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix65,{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{1,2,3,4,5})},false);
+    }
+*/
+/*
+    for (int i = 2; i < 20; ++i)
+    {
+        MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{50}),
+                                           FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{40}),
+                                           FunctionProp(40,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{40}),
+                                           FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{30}),
+                                           FunctionProp(20,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{1,2,3,4,5})},false);
+    }
+    */
+
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    w.loadHDM14(hdm14path);
+    auto anims14 = w.anims();
+    cv::Mat MDDDTWNormMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM14.exr");
+    cv::Mat DiceVoxelsMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM14.exr");
+
+    //MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix14,{1,2,5,10,15,20,50})},false);
+
+    //MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),
+    //                                  {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+/*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix14,{1,2,3,4,5})},false);
+    }
+*/
+
+    //MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix14,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+/*
+    for (int i = 2; i < 100; ++i)
+    {
+        MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix14,{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix14,{1,2,3,4,5})},false);
+    }
+*/
+/*
+    for (int i = 2; i < 20; ++i)
+    {
+        MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{50}),
+                                           FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix14,{40}),
+                                           FunctionProp(40,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{30}),
+                                           FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix14,{20}),
+                                           FunctionProp(20,std::bind(SimilarityFunctions::movementAmountV1V2V3Length,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{i}),
+                                           FunctionProp(i,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix14,{1,2,3,4,5})},false);
+    }
 */
     //printDescriptors(anims, {0,4});
 /*
@@ -225,7 +373,7 @@ used 50 from previous method
     //56 - 61 , 138 , 139
     //TODO úspešnosť kategorie
 
-    //MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::pointDistanceNorm,cv::Mat(),{1,2,3,4,5,10,15,20,50})});
+    //MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{1,2,3,4,5,10,15,20,50})});
 
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::DICECoefficientVoxels,cv::Mat(),{1,2,5,10,15,20,50}),
@@ -235,13 +383,15 @@ used 50 from previous method
     85.39% 122
     96.7764 % 14
 */
-
 /*
-    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,2,5,10,15,20,50}),
-                                    FunctionProp(50,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,5})});
+for (int i = 22; i  < 50; ++i)
+{
 
-
-     * HBM05-65
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::CHISQUARE),cv::Mat(),{1,i}),
+                                    FunctionProp(22,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,3,4,5})},false);
+}
+/*
+      HBM05-65
 1: 90.7744 %
 2: 95.3633 %
 5: 98.6616 %
@@ -249,10 +399,10 @@ used 50 from previous method
 
 /*
     MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10,15,20}),
-                                    FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5}),
+                                    FunctionProp(50,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{1,2,5}),
                                     FunctionProp(40,SimilarityFunctions::compareHistFeatures,cv::Mat(),{1,2,5,10}),
-                                    FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix,{1,2,5})});
-
+                                    FunctionProp(30,SimilarityFunctions::MDDDTWNorm,MDDDTWNormMatrix65,{1,2,5})});
+/*
     1: 87.2495 %
     2: 93.774 %
     5: 97.3561 %
@@ -329,7 +479,11 @@ used 50 from previous method
     qDebug() << "best score: " << max << " with coeffs: " << maxi << " " << maxj << " " << maxk << " ";
 
     */
+/*
+    MethodTester::testMethod(anims,{FunctionProp(anims.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::MAE),cv::Mat(),{1}),
+                                        FunctionProp(50,SimilarityFunctions::MDDDTWNorm,cv::Mat(),{1,2,3,4,5})},true);
 
+*/
     /*
     for (int i = 0; i < 47; ++i)
     {
@@ -378,22 +532,6 @@ used 50 from previous method
     3: 93.7313 %
 */
 
-
-/*    MethodTester::testMethod(anims,{FunctionProp(anims.size(),SimilarityFunctions::discreteVoxels,cv::Mat(),{1,2,5,10,15,20,25,50,100,200})});
-
-1: 34.2857 %
-2: 65.5011 %
-5: 90.9595 %
-10: 95.9915 %
-15: 97.1855 %
-20: 97.7825 %
-25: 98.1237 %
-50: 98.806 %
-100: 99.3177 %
-200: 99.7015 %
-
-*/
-
 /*
 {
     auto start = std::chrono::steady_clock::now();
@@ -429,6 +567,6 @@ used 50 from previous method
 */
 
 
-
+    w.show();
     return a.exec();
 }
