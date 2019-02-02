@@ -18,7 +18,7 @@
 #ifndef HELPERFUNCTIONS_H
 #define HELPERFUNCTIONS_H
 
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 #include <iostream>
 

@@ -8,7 +8,7 @@ QT       += core gui concurrent 3dextras
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QMAKE_CXXFLAGS += -std=c++1y -pedantic -Wall -Wextra -march=native
+QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native
 
 TARGET = TestApp
 TEMPLATE = app
@@ -97,16 +97,8 @@ DEPENDPATH += $$PWD/../Visualization
 #    QMAKE_EXTRA_COMPILERS += cuda
 #}
 
-INCLUDEPATH += $$PWD/../../../../../../../usr/local/lib64
-DEPENDPATH += $$PWD/../../../../../../../usr/local/lib64
+#INCLUDEPATH += $$PWD/../../../../../../../usr/local/lib64
+#DEPENDPATH += $$PWD/../../../../../../../usr/local/lib64
 
 CONFIG += link_pkgconfig
-PKGCONFIG += opencv tbb
-
-
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/release/ -lX11
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/debug/ -lX11
-else:unix: LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/ -lX11
-
-INCLUDEPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu
-DEPENDPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu
+PKGCONFIG += opencv tbb x11

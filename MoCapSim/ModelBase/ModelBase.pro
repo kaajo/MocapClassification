@@ -23,7 +23,7 @@
 
 QT += opengl concurrent
 
-QMAKE_CXXFLAGS += -std=c++1y -pedantic -Wall -Wextra -march=native
+QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native
 
 TARGET = ModelBase
 TEMPLATE = lib
@@ -49,10 +49,3 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
-
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/release/ -lX11
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/debug/ -lX11
-else:unix: LIBS += -L$$PWD/../../../../../../../usr/lib/x86_64-linux-gnu/ -lX11
-
-INCLUDEPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu
-DEPENDPATH += $$PWD/../../../../../../../usr/lib/x86_64-linux-gnu

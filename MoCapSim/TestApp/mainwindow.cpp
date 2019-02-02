@@ -27,8 +27,9 @@
 
 #include "categorymapper.hpp"
 
-#include <opencv2/opencv.hpp>
 #include "modelfactory.h"
+
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

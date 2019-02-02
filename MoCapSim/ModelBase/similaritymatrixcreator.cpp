@@ -26,6 +26,10 @@
 
 #include "modelfactory.h"
 
+#include <opencv2/highgui.hpp>
+
+#include <iostream>
+
 SimilarityMatrixCreator::SimilarityMatrixCreator()
 {
 

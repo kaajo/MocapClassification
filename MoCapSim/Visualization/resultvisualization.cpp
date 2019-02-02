@@ -26,6 +26,8 @@
 #include "ui_resultvisualization.h"
 #include "resultvisualization.hpp"
 
+#include <cmath>
+
 QT_CHARTS_USE_NAMESPACE
 
 ResultVisualization::ResultVisualization(QWidget *parent) :

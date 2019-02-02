@@ -23,16 +23,12 @@
 #include "helperfunctions.h"
 #include "comparefunctions.h"
 
-
-
-
-
-#include <opencv2/opencv.hpp>
-
 #include <cassert>
 #include <vector>
 
 #include <mocapanimation.h>
+
+
 
 #define NUM_OF_NODES 31
 

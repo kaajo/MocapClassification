@@ -26,6 +26,7 @@
 #include <QVector>
 
 #include <ostream>
+#include <functional>
 
 class MocapAnimation;
 
