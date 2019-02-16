@@ -29,6 +29,8 @@ TARGET = ModelBase
 TEMPLATE = lib
 CONFIG += staticlib
 
+DEFINES += "cimg_display=0" #wow this is cool
+
 SOURCES += \
     modelfactory.cpp \
     mocapanimation.cpp \

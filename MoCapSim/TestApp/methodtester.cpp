@@ -189,4 +189,26 @@ void MethodTester::printAverageFirstMatch(QVector<Result> &results)
               << std::endl;
 }
 
+cv::Mat MethodTester::testMethod(IDistanceFunction *plugin, cv::Mat previousRes, int numOfPrevResults)
+{
+    cv::Rect croppROI(0,0,numOfPrevResults,previousRes.rows);
+    const cv::Mat previousResCropped = previousRes(croppROI);
+    const cv::Mat distMatrix = plugin->getDistanceMatrix();
+
+    cv::Mat newDistanceMatrix(previousRes.rows,previousRes.rows,CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
+
+    for (int anim = 0; anim < previousResCropped.rows; ++anim)
+    {
+        for (int order = 0; order < numOfPrevResults; ++order)
+        {
+            int animId = previousRes.at<int>(anim,order);
+            newDistanceMatrix.at<float>(anim,animId) = distMatrix.at<float>(anim,animId);
+        }
+    }
+
+    cv::Mat newIndexes;
+    cv::sortIdx(newDistanceMatrix,newIndexes,CV_SORT_EVERY_ROW | CV_SORT_ASCENDING);
+    return newIndexes(croppROI);
+}
+
 

@@ -36,7 +36,7 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
 
     if(!file.isOpen())
     {
-        qWarning() << "could not load animations: " << file.errorString();
+        qWarning() << "could not load animations in: " << path << "reason:" << file.errorString();
         return retVal;
     }
 

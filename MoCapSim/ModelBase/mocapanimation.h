@@ -24,7 +24,6 @@
 #include <QVector3D>
 #include <QMap>
 #include <QHash>
-#include <QList>
 
 #include <functional>
 

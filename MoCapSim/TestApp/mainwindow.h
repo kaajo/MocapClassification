@@ -22,6 +22,7 @@
 #include <QListWidget>
 
 
+class IDistanceFunction;
 class MocapAnimation;
 class AnimPlayer;
 class MetricVisualization;
@@ -35,10 +36,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    QVector<MocapAnimation *> anims() const;
+    QVector<MocapAnimation *> anims() const {return m_anims;}
 
     void loadHDM14(const QString& path, const int maxNOAnims = -1);
     void loadHDM65(const QString& path, const int maxNOAnims = -1);
@@ -46,6 +47,8 @@ public:
 
 private slots:
     void animationChecked(QListWidgetItem *item);
+
+    void on_actionLoadPlugin_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -60,6 +63,8 @@ private:
     void filterAnims(QVector<int> skipCategories);
 
     void datasetStats();
+
+    QVector<IDistanceFunction*> m_plugins;
 };
 
 #endif // MAINWINDOW_H

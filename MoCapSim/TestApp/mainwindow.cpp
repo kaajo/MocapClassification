@@ -17,14 +17,19 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QDebug>
 
+#include <QFileDialog>
+#include <QPluginLoader>
+#include <QThread>
+#include <QVBoxLayout>
+#include <QDebug>
 
 #include <animplayer.h>
 
 #include <metricvisualization.h>
 #include <mocapanimation.h>
 
+#include "functioninterface.h"
 #include "categorymapper.hpp"
 
 #include "modelfactory.h"
@@ -37,11 +42,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    m_vis = new MetricVisualization;
-    ui->centralWidget->layout()->addWidget(m_vis);
-
     m_animPlayer = new AnimPlayer();
-    m_animPlayer->show();
+    ui->animPlayer->layout()->addWidget(m_animPlayer);
+
+    m_vis = new MetricVisualization;
+    ui->scrollAreaWidgetContents->layout()->addWidget(m_vis);
 }
 
 MainWindow::~MainWindow()
@@ -53,15 +58,19 @@ MainWindow::~MainWindow()
 
 void MainWindow::animationChecked(QListWidgetItem *item)
 {
+    const int id = item->data(Qt::UserRole).toInt();
+
     if (item->checkState() == Qt::CheckState::Checked)
     {
-        m_vis->addAnimation(m_anims[item->data(Qt::UserRole).toInt()]);
-        m_animPlayer->addAnimation(m_anims[item->data(Qt::UserRole).toInt()]);
+        m_vis->addAnimation(m_anims[id]);
+        m_animPlayer->addAnimation(m_anims[id]);
+        std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionAdded(id);});
     }
     else
     {
-        m_vis->removeAnimation(m_anims[item->data(Qt::UserRole).toInt()]);
-        m_animPlayer->removeAnimation(m_anims[item->data(Qt::UserRole).toInt()]);
+        m_vis->removeAnimation(m_anims[id]);
+        m_animPlayer->removeAnimation(m_anims[id]);
+        std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionRemoved(id);});
     }
 }
 
@@ -160,7 +169,31 @@ void MainWindow::datasetStats()
     }
 }
 
-QVector<MocapAnimation *> MainWindow::anims() const
+
+
+void MainWindow::on_actionLoadPlugin_triggered()
 {
-    return m_anims;
+    const QDir pluginsDir = QDir(QFileDialog::getExistingDirectory(this, tr("Load plugins from directory"),QApplication::applicationDirPath()));
+
+    if (pluginsDir.isEmpty()) return;
+
+    const auto entryList = pluginsDir.entryList(QDir::Files);
+    for (const QString &fileName : entryList) {
+        QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = loader.instance();
+        if (plugin) {
+            qDebug() << "loaded plugin:" << fileName;
+            auto object = qobject_cast<IDistanceFunction*>(plugin);
+            object->setAnimations(m_anims);
+
+            object->computeDescriptors();
+
+            object->getVisualization()->setMinimumSize(640,480);
+            ui->scrollAreaWidgetContents->layout()->addWidget(object->getVisualization());
+
+            m_plugins.push_back(object);
+        }
+
+        qDebug() << fileName;
+    }
 }

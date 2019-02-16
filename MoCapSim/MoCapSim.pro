@@ -20,7 +20,9 @@ TEMPLATE = subdirs
 SUBDIRS += \
     ModelBase \
     TestApp \
-    Visualization
+    Visualization \
+    DICECoefficientVoxels
 
 TestApp.depends = Visualization
 Visualization.depends = ModelBase
+DICECoefficientVoxels.depends = ModelBase

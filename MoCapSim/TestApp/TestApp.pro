@@ -13,6 +13,7 @@ QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native
 TARGET = TestApp
 TEMPLATE = app
 
+DEFINES += "cimg_display=0" #wow this is cool
 
 # CUDA
 DESTDIR     = $$system(pwd)
@@ -28,7 +29,8 @@ HEADERS  += mainwindow.h \
     methodtester.h \
     helperfunctions.h \
     comparefunctions.h \
-    categorymapper.hpp
+    categorymapper.hpp \
+    functioninterface.h
 
 FORMS    += mainwindow.ui
 

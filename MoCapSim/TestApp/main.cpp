@@ -168,8 +168,8 @@ void printDescriptors(QVector<MocapAnimation*> anims, std::vector<int> indexes)
     }
 }
 
-const QString hdm130path = "/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data";
-const QString hdm14path = "/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting/MoCapSim/HDM05-14.data";
+const QString hdm130path = "/home/mkrajicek/Documents/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data";
+const QString hdm14path = "/home/mkrajicek/Documents/SDIPR/mocap-segmenting/MoCapSim/HDM05-14.data";
 
 int main(int argc, char *argv[])
 {
@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     MainWindow w;
-    w.setWindowState(Qt::WindowMaximized);
+    //w.setWindowState(Qt::WindowMaximized);
 
     /*
     for (int i = 0; i < anims.size(); ++i)
@@ -199,14 +199,14 @@ int main(int argc, char *argv[])
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM122(hdm130path);
-    auto anims122 = w.anims();
+    w.loadHDM122(hdm130path,50);
+/*    auto anims122 = w.anims();
     cv::Mat MDDDTWNormMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM122.exr");
-    cv::Mat DiceVoxelsMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM122.exr");
+    cv::Mat DiceVoxelsMatrix122 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM122.exr");
     //MethodTester::testMethod(anims122,{FunctionProp(anims122.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix122,{1,2,3,4,5,10,15,20,50})},false);
 
-    checkSpeed(1000,0,anims122,SimilarityFunctions::MSEVoxels);
-
+    //checkSpeed(1000,0,anims122,SimilarityFunctions::MSEVoxels);
+*/
     /*
     for (int i = 2; i < 100; ++i)
     {
@@ -235,13 +235,14 @@ int main(int argc, char *argv[])
     }
     */
 
-/*
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM65(hdm130path);
+    /*w.loadHDM65(hdm130path,50);
     auto anims65 = w.anims();
-    cv::Mat MDDDTWNormMatrix65 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM65.exr");
-    cv::Mat DiceVoxelsMatrix65 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM65.exr");
-*/
+    cv::Mat MDDDTWNormMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","MDDDTWNormHDM65.exr");
+    cv::Mat DiceVoxelsMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM65.exr");
+    cv::Mat alternative = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting/","DICEVoxelsHDM65-alt.exr");
+
     //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix65,{1,2,3,4,5,10,15,20,50})},false);
 /*
     for (int i = 2; i < 100; ++i)
@@ -251,7 +252,8 @@ int main(int argc, char *argv[])
     }
 */
     //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),std::bind(SimilarityFunctions::movementAmount,std::placeholders::_1,std::placeholders::_2,CompareHist::CompareHistogram::INTERSECTION),cv::Mat(),{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38})},false);
-    //MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix65,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+//    MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::DICECoefficientVoxels,DiceVoxelsMatrix65,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
+//    MethodTester::testMethod(anims65,{FunctionProp(anims65.size(),SimilarityFunctions::DICECoefficientVoxels,alternative,{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45})},false);
 /*
     for (int i = 2; i < 100; ++i)
     {
@@ -274,10 +276,10 @@ int main(int argc, char *argv[])
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM14(hdm14path);
-    auto anims14 = w.anims();
-    cv::Mat MDDDTWNormMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM14.exr");
-    cv::Mat DiceVoxelsMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM14.exr");
+//    w.loadHDM14(hdm14path);
+//    auto anims14 = w.anims();
+//    cv::Mat MDDDTWNormMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM14.exr");
+//    cv::Mat DiceVoxelsMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM14.exr");
 
     //MethodTester::testMethod(anims14,{FunctionProp(anims14.size(),SimilarityFunctions::MDDDTWNorm, MDDDTWNormMatrix14,{1,2,5,10,15,20,50})},false);
 

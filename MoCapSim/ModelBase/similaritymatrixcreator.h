@@ -41,12 +41,12 @@ public:
 
     void createSimilarityImage(QVector<MocapAnimation*> anims, MocapAnimation::SimilarityFunction function, QString imageDirectory = QDir::currentPath(), QString imageName = "similarity");
 
-
     cv::Mat loadMatrix(QString imageDirectory, QString imageName);
 
+    static void saveMatrix(QString path, cv::Mat matrix);
 private:
     // base functions
-    void saveMatrix(QString path, cv::Mat matrix);
+
     cv::Mat loadMatrix(QString path);
 
     static QPair<float,MocapAnimation*> mapFun(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);

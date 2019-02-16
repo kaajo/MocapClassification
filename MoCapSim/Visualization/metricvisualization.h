@@ -24,11 +24,12 @@
 
 #include "visualization_global.h"
 
-#include <mocapanimation.h>
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QLineSeries>
+
+#include <mocapanimation.h>
 
 namespace Ui {
 class MetricVisualization;

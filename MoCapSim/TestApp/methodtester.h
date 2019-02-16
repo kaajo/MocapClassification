@@ -19,7 +19,9 @@
 #define METHODTESTER_H
 
 #include "result.h"
-#include "resultstats.hpp"
+#include "functioninterface.h"
+
+#include <resultstats.hpp>
 
 #include <opencv2/core/core.hpp>
 
@@ -46,6 +48,8 @@ public:
     static void printMethodCatAccuracy(QMap<int16_t, qreal> catAcc, bool verbose = true);
     static void printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output);
     static void printAverageFirstMatch(QVector<Result> &results);
+
+    cv::Mat testMethod(IDistanceFunction *plugin, cv::Mat previousRes, int numOfPrevResults);
 };
 
 template <class T, std::size_t N>
