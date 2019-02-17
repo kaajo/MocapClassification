@@ -33,7 +33,7 @@ public:
     void save(const QString &path, const QVector<MocapAnimation*> anims);
 
 private:
-    QVector<QVector3D> parseCoordsLine(const QString &line);
+    inline QVector<QVector3D> parseCoordsLine(const QString &line);
 };
 
 #endif // MODELBASE_H

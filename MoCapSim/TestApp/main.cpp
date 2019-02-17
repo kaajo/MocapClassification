@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM122(hdm130path,50);
+    //w.loadHDM122(hdm130path,50);
 /*    auto anims122 = w.anims();
     cv::Mat MDDDTWNormMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM122.exr");
     cv::Mat DiceVoxelsMatrix122 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM122.exr");
@@ -237,8 +237,8 @@ int main(int argc, char *argv[])
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /*w.loadHDM65(hdm130path,50);
-    auto anims65 = w.anims();
+    w.loadHDM65(hdm130path);
+/*    auto anims65 = w.anims();
     cv::Mat MDDDTWNormMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","MDDDTWNormHDM65.exr");
     cv::Mat DiceVoxelsMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM65.exr");
     cv::Mat alternative = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting/","DICEVoxelsHDM65-alt.exr");

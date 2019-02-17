@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui concurrent 3dextras
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT += core gui concurrent 3dextras widgets
 
 QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native
 
@@ -15,14 +13,12 @@ TEMPLATE = app
 
 DEFINES += "cimg_display=0" #wow this is cool
 
-# CUDA
-DESTDIR     = $$system(pwd)
-OBJECTS_DIR = release/obj
-
 SOURCES += main.cpp\
         mainwindow.cpp \
     methodtester.cpp \
-    categorymapper.cpp
+    categorymapper.cpp \
+    plugininfo.cpp \
+    weigtedmean.cpp
 
 HEADERS  += mainwindow.h \
     functions.h \
@@ -30,31 +26,19 @@ HEADERS  += mainwindow.h \
     helperfunctions.h \
     comparefunctions.h \
     categorymapper.hpp \
-    functioninterface.h
+    plugininfo.h \
+    weigtedmean.h \
+    idistancefunction.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    plugininfo.ui \
+    weigtedmean.ui
 
 INCLUDEPATH += /usr/include/eigen3
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../ModelBase/release/ -lModelBase
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../ModelBase/debug/ -lModelBase
-else:unix: LIBS += -L$$OUT_PWD/../ModelBase/ -lModelBase
-
-INCLUDEPATH += $$PWD/../ModelBase
-DEPENDPATH += $$PWD/../ModelBase
-
-win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/release/libModelBase.a
-else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/debug/libModelBase.a
-else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/release/ModelBase.lib
-else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/debug/ModelBase.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../Visualization/release/ -lVisualization
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../Visualization/debug/ -lVisualization
-else:unix: LIBS += -L$$OUT_PWD/../Visualization/ -lVisualization
-
-INCLUDEPATH += $$PWD/../Visualization
-DEPENDPATH += $$PWD/../Visualization
+# CUDA
+#DESTDIR     = $$system(pwd)
+#OBJECTS_DIR = release/obj
 
 #CUDA_SOURCES += cuda_code.cu general_metrics.cu
 #CUDA_DIR = /usr/local/cuda-7.5
@@ -104,3 +88,15 @@ DEPENDPATH += $$PWD/../Visualization
 
 CONFIG += link_pkgconfig
 PKGCONFIG += opencv tbb x11
+
+unix:!macx: LIBS += -L$$OUT_PWD/../Visualization/ -lVisualization
+
+INCLUDEPATH += $$PWD/../Visualization
+DEPENDPATH += $$PWD/../Visualization
+
+unix:!macx: LIBS += -L$$OUT_PWD/../ModelBase/ -lModelBase
+
+INCLUDEPATH += $$PWD/../ModelBase
+DEPENDPATH += $$PWD/../ModelBase
+
+unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a

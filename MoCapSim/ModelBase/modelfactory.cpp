@@ -46,7 +46,7 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
     QTextStream in(&file);
     while (!in.atEnd())
     {
-        QString line = in.readLine();
+        const QString line = in.readLine();
 
         if(line[0] == '#')
         {
@@ -58,15 +58,15 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
             }
 
             QStringList parts = line.split(" ",QString::SkipEmptyParts);
-            QStringList info = parts[2].split("_",QString::SkipEmptyParts);
+            const QStringList info = parts[2].split("_",QString::SkipEmptyParts);
             currCatID = info[1].toInt();
 
-            QString secondLine = in.readLine();
+            const QString secondLine = in.readLine();
             parts = line.split(";", QString::SkipEmptyParts);
         }
         else
         {
-            QVector<QVector3D> frame = parseCoordsLine(line);
+            const QVector<QVector3D> frame = parseCoordsLine(line);
 
             if (frame.size() > 1)
             {
@@ -82,7 +82,7 @@ QVector<MocapAnimation*> ModelFactory::load(const QString &path, int maxNumber)
 
     if (! currentPoses.empty())
     {
-        int id = retVal.size();
+        const int id = retVal.size();
         retVal.push_back(new MocapAnimation(id,currCatID,currentPoses));
     }
 
@@ -96,13 +96,13 @@ void ModelFactory::save(const QString &path, const QVector<MocapAnimation *> ani
 
 QVector<QVector3D> ModelFactory::parseCoordsLine(const QString &line)
 {
-    QStringList coordsList = line.split(";", QString::SkipEmptyParts);
+    const QStringList coordsList = line.split(";", QString::SkipEmptyParts);
 
     MocapAnimation::MocapFrame retVal;
 
     for (int i = 0; i < coordsList.size(); ++i)
     {
-        QStringList coords = coordsList[i].split(",", QString::SkipEmptyParts);
+        const QStringList coords = coordsList[i].split(",", QString::SkipEmptyParts);
 
         retVal.push_back(QVector3D(coords[0].toFloat(), coords[1].toFloat(), coords[2].toFloat()));
     }

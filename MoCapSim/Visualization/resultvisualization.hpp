@@ -41,7 +41,7 @@ public:
 private:
     Ui::ResultVisualization *ui;
 
-    void updateCharts(const ResultMetrics &m_result);
+    void updateCharts(const ResultMetrics &result);
 
     qreal findMedian(QList<qreal> vec, int begin, int end);
     qreal findVariance(QList<qreal> vec);

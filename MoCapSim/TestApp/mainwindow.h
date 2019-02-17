@@ -26,6 +26,7 @@ class IDistanceFunction;
 class MocapAnimation;
 class AnimPlayer;
 class MetricVisualization;
+class WeigtedMean;
 
 namespace Ui {
 class MainWindow;
@@ -65,6 +66,8 @@ private:
     void datasetStats();
 
     QVector<IDistanceFunction*> m_plugins;
+
+    WeigtedMean *m_weightedMean = nullptr;
 };
 
 #endif // MAINWINDOW_H

@@ -21,7 +21,7 @@
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QBarSet>
 #include <QtCharts/QLineSeries>
-
+#include <QDebug>
 
 #include "ui_resultvisualization.h"
 #include "resultvisualization.hpp"
@@ -47,9 +47,9 @@ void ResultVisualization::setResult(const ResultMetrics &result)
     updateCharts(result);
 }
 
-void ResultVisualization::updateCharts(const ResultMetrics &m_result)
+void ResultVisualization::updateCharts(const ResultMetrics &result)
 {
-    QMap<int16_t, qreal> res = m_result.getCategoryAccuracy();
+    QMap<int16_t, qreal> res = result.getCategoryAccuracy();
     QList<qreal> sortedList = res.values();
     std::sort(sortedList.begin(),sortedList.end());
 
@@ -60,7 +60,33 @@ void ResultVisualization::updateCharts(const ResultMetrics &m_result)
     qreal lowQ = findMedian(sortedList, 0, count / 2);
     qreal upQ = findMedian(sortedList , count / 2 + (count % 2), count);
 
-    //histogram
+    //accuracy for first n
+    QChart *accuracyChart = new QChart;
+    accuracyChart->setTitle("Success probability");
+    accuracyChart->legend()->hide();
+
+    QLineSeries *accuracySeries = new QLineSeries;
+    for (int i = 1; i < 20; ++i)
+    {
+        auto p = QPointF(i,result.getAccuracy(i));
+        accuracySeries->append(p);
+    }
+    accuracyChart->addSeries(accuracySeries);
+
+    accuracyChart->createDefaultAxes();
+
+    QValueAxis *accX = new QValueAxis();
+    accX->setRange(1,20);
+    accX->setTickCount(10);
+    accX->setLabelFormat("%d");
+    auto accXLF = accX->labelsFont();
+    accXLF.setPixelSize(8);
+    accX->setLabelsFont(accXLF);
+    accuracyChart->setAxisX(accX);
+
+    ui->accuracyChart->setChart(accuracyChart);
+
+    //category histogram
     QLineSeries *series = new QLineSeries();
     for (const int16_t& key : res.keys())
     {
@@ -68,6 +94,7 @@ void ResultVisualization::updateCharts(const ResultMetrics &m_result)
     }
 
     QChart *histChart = new QChart();
+    histChart->setTitle("Category accuracy");
     histChart->legend()->hide();
 
     QValueAxis *aY = new QValueAxis();
@@ -97,7 +124,7 @@ void ResultVisualization::updateCharts(const ResultMetrics &m_result)
     ui->variance->setText(QString::number(findVariance(res.values())));
 
     //accuracy
-    ui->accuracy->setText(QString::number(m_result.getAccuracy()) + "%");
+    ui->accuracy->setText(QString::number(result.getAccuracy() * 100.0) + "%");
 
     //box-and-whiskers chart
     QBoxPlotSeries *catAccSeries = new QBoxPlotSeries();

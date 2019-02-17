@@ -29,8 +29,10 @@
 #include <metricvisualization.h>
 #include <mocapanimation.h>
 
-#include "functioninterface.h"
+#include "idistancefunction.h"
 #include "categorymapper.hpp"
+#include "plugininfo.h"
+#include "weigtedmean.h"
 
 #include "modelfactory.h"
 
@@ -47,6 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_vis = new MetricVisualization;
     ui->scrollAreaWidgetContents->layout()->addWidget(m_vis);
+
+    //ui->WeightedMeanTab->setLayout(new QVBoxLayout);
+    m_weightedMean = new WeigtedMean;
+    ui->WeightedMeanTab->layout()->addWidget(m_weightedMean);
 }
 
 MainWindow::~MainWindow()
@@ -127,6 +133,8 @@ void MainWindow::addAnimsToUI()
     }
 
     connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked);
+
+    m_weightedMean->setAnimations(m_anims);
 }
 
 void MainWindow::filterAnims(QVector<int> skipCategories)
@@ -169,8 +177,6 @@ void MainWindow::datasetStats()
     }
 }
 
-
-
 void MainWindow::on_actionLoadPlugin_triggered()
 {
     const QDir pluginsDir = QDir(QFileDialog::getExistingDirectory(this, tr("Load plugins from directory"),QApplication::applicationDirPath()));
@@ -185,15 +191,14 @@ void MainWindow::on_actionLoadPlugin_triggered()
             qDebug() << "loaded plugin:" << fileName;
             auto object = qobject_cast<IDistanceFunction*>(plugin);
             object->setAnimations(m_anims);
-
-            object->computeDescriptors();
-
-            object->getVisualization()->setMinimumSize(640,480);
-            ui->scrollAreaWidgetContents->layout()->addWidget(object->getVisualization());
-
             m_plugins.push_back(object);
-        }
 
-        qDebug() << fileName;
+            const QString pluginName = loader.metaData().find("IID")->toString("NOT FOUND");
+
+            PluginInfo *info = new PluginInfo(object,pluginName);
+            ui->scrollAreaWidgetContents->layout()->addWidget(info);
+
+            m_weightedMean->addPlugin(pluginName,object);
+        }
     }
 }

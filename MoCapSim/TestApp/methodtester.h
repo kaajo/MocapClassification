@@ -19,7 +19,7 @@
 #define METHODTESTER_H
 
 #include "result.h"
-#include "functioninterface.h"
+#include "idistancefunction.h"
 
 #include <resultstats.hpp>
 

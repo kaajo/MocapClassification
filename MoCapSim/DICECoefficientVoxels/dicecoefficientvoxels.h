@@ -18,20 +18,18 @@
 #pragma once
 
 #include "dicecoefficientvoxels_global.h"
+#include "voxelvisualization.h"
 
-#include "../TestApp/functioninterface.h"
+#include "../TestApp/idistancefunction.h"
 
 #include <QObject>
 #include <QFutureWatcher>
-
-
-#include "voxelvisualization.h"
 
 class DICECOEFFICIENTVOXELSSHARED_EXPORT DICECoefficientVoxels : public QObject, public IDistanceFunction
 {
     Q_OBJECT
     Q_INTERFACES(IDistanceFunction)
-    Q_PLUGIN_METADATA(IID "MotionCaptureClassification.DistanceFunctionInterface/1.0")
+    Q_PLUGIN_METADATA(IID "VOXELS.DICE/1.0")
 
 public:
     DICECoefficientVoxels(QObject *parent = nullptr);
@@ -48,7 +46,6 @@ public:
     void selectionRemoved(int animId) override;
 
 private slots:
-    void onComputeDesc(int progress);
     void onComputeDescFinished();
     void onComputeDistAllFinished();
 

@@ -14,20 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+#include "dicecoefficientvoxels.h"
 
 #include <QtConcurrent/QtConcurrentMap>
-
+#include <QTime>
 
 #include <opencv2/highgui.hpp>
 
-#include <QTime>
-
-#include "dicecoefficientvoxels.h"
-
 DICECoefficientVoxels::DICECoefficientVoxels(QObject *parent) : QObject(parent)
 {
-    connect(&m_descWatcher,&QFutureWatcher<cimg_library::CImg<float>>::progressValueChanged,this, &DICECoefficientVoxels::onComputeDesc);
-    connect(&m_distanceWatcher,&QFutureWatcher<void>::progressValueChanged,this, &DICECoefficientVoxels::onComputeDesc);
     connect(&m_descWatcher,&QFutureWatcher<cimg_library::CImg<float>>::finished,this, &DICECoefficientVoxels::onComputeDescFinished);
     connect(&m_distanceWatcher,&QFutureWatcher<void>::finished,this, &DICECoefficientVoxels::onComputeDistAllFinished);
 }
@@ -86,11 +81,6 @@ void DICECoefficientVoxels::selectionRemoved(int animId)
     refreshVis();
 }
 
-void DICECoefficientVoxels::onComputeDesc(int progress)
-{
-    qDebug() << "compute descriptors progress:" << progress;
-}
-
 void DICECoefficientVoxels::onComputeDescFinished()
 {
     const auto future = m_descWatcher.future();
@@ -146,12 +136,12 @@ void DICECoefficientVoxels::computeDistToAll(const MocapAnimation *anim,cv::Mat 
 
 QPair<int,cimg_library::CImg<uint8_t>> DICECoefficientVoxels::computeVoxels(const MocapAnimation * const anim)
 {
-    int color = 1;
-    int m_numberOfNodes = 31;
+    const int color = 1;
+    const int numberOfNodes = 31;
 
-    cimg_library::CImg<float> m_voxelMap = cimg_library::CImg<float>(20,20,20,1,0);
+    cimg_library::CImg<uint8_t> m_voxelMap = cimg_library::CImg<uint8_t>(20,20,20,1,0);
 
-    for (int n = 0; n < m_numberOfNodes; ++n)
+    for (int n = 0; n < numberOfNodes; ++n)
     {
         for (int f = 1; f < anim->frames(); ++f)
         {
@@ -164,7 +154,7 @@ QPair<int,cimg_library::CImg<uint8_t>> DICECoefficientVoxels::computeVoxels(cons
 
             if (prevPosi == posi)
             {
-                m_voxelMap(posi[0],posi[1],posi[2]) = 1.0f;
+                m_voxelMap(posi[0],posi[1],posi[2]) = 1;
             }
             else
             {
