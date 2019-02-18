@@ -142,15 +142,8 @@ void ResultVisualization::updateCharts(const ResultMetrics &result)
     chart->addSeries(catAccSeries);
     chart->legend()->hide();
 
-    QValueAxis *axisY = new QValueAxis();
-    axisY->setRange(0.0,1.0);
-    axisY->setTickCount(11);
 
-    auto font = axisY->labelsFont();
-    font.setPixelSize(9);
-    axisY->setLabelsFont(font);
-
-    chart->setAxisY(axisY);
+    chart->createDefaultAxes();
 
     ui->boxPlotChart->setRenderHint(QPainter::Antialiasing);
     ui->boxPlotChart->setChart(chart);
