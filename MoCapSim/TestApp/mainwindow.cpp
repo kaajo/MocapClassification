@@ -33,6 +33,7 @@
 #include "categorymapper.hpp"
 #include "plugininfo.h"
 #include "weigtedmean.h"
+#include "filterandrefine.h"
 
 #include "modelfactory.h"
 
@@ -50,9 +51,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_vis = new MetricVisualization;
     ui->scrollAreaWidgetContents->layout()->addWidget(m_vis);
 
-    //ui->WeightedMeanTab->setLayout(new QVBoxLayout);
     m_weightedMean = new WeigtedMean;
     ui->WeightedMeanTab->layout()->addWidget(m_weightedMean);
+
+    m_filterAndRefine = new FilterAndRefine;
+    ui->FilterAndRefine->layout()->addWidget(m_filterAndRefine);
 }
 
 MainWindow::~MainWindow()
@@ -135,6 +138,7 @@ void MainWindow::addAnimsToUI()
     connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked);
 
     m_weightedMean->setAnimations(m_anims);
+    m_filterAndRefine->setAnimations(m_anims);
 }
 
 void MainWindow::filterAnims(QVector<int> skipCategories)
@@ -199,6 +203,7 @@ void MainWindow::on_actionLoadPlugin_triggered()
             ui->scrollAreaWidgetContents->layout()->addWidget(info);
 
             m_weightedMean->addPlugin(pluginName,object);
+            m_filterAndRefine->addPlugin(pluginName,object);
         }
     }
 }

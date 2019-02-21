@@ -17,23 +17,23 @@
 
 #pragma once
 
-#include "dicecoefficientvoxels_global.h"
-#include "voxelvisualization.h"
+#include "movementamount_global.h"
+#include "graphvisualization.h"
 
 #include "../TestApp/idistancefunction.h"
 
 #include <QObject>
 #include <QFutureWatcher>
 
-class DICECOEFFICIENTVOXELSSHARED_EXPORT DICECoefficientVoxels : public QObject, public IDistanceFunction
+class MOVEMENTAMOUNTSHARED_EXPORT MovementAmount : public QObject, public IDistanceFunction
 {
     Q_OBJECT
     Q_INTERFACES(IDistanceFunction)
-    Q_PLUGIN_METADATA(IID "VOXELS.DICE/1.0")
+    Q_PLUGIN_METADATA(IID "MovementAmount.CVCompareHist/1.0")
 
 public:
-    DICECoefficientVoxels(QObject *parent = nullptr);
-    virtual ~DICECoefficientVoxels() override = default;
+    MovementAmount(QObject *parent = nullptr);
+    virtual ~MovementAmount() override = default;
 
     void setAnimations(QVector<MocapAnimation*> animations) override;
 
@@ -50,28 +50,21 @@ private slots:
     void onComputeDistAllFinished();
 
 private:
-    static float computeDist(cimg_library::CImg<uint8_t> desc1, cimg_library::CImg<uint8_t> desc2);
+    static float computeDist(std::array<cv::Vec3f,31> desc1, std::array<cv::Vec3f,31> desc2);
+
+    static void computeDistToAll(const MocapAnimation *anim, cv::Mat &reducedResults,QVector<MocapAnimation*> anims,
+                                 QHash<int,std::array<cv::Vec3f,31>> descriptors);
 
     QVector<MocapAnimation*> m_anims;
 
-    struct DescriptorSettings
-    {
-        int m_voxelsPerMeter = 5;
-        unsigned int voxelTilesX = 20;
-        unsigned int voxelTilesY = 20;
-        unsigned int voxelTilesZ = 20;
-    };
-
-    static void computeDistToAll(const MocapAnimation *anim, cv::Mat &reducedResults,QVector<MocapAnimation*> anims, QHash<int,cimg_library::CImg<uint8_t>> descriptors);
     QFutureWatcher<void> m_distanceWatcher;
 
-    QHash<int,cimg_library::CImg<uint8_t>> m_descriptors;
-    static QPair<int, cimg_library::CImg<uint8_t> > computeVoxels(const MocapAnimation * const anim);
-    QFutureWatcher<QPair<int,cimg_library::CImg<uint8_t>>> m_descWatcher;
+    static QPair<int,std::array<cv::Vec3f,31>> computeDescriptor(const MocapAnimation * const anim);
+    QFutureWatcher<QPair<int,std::array<cv::Vec3f,31>>> m_descWatcher;
 
-    VoxelVisualization *m_vis = new VoxelVisualization();
-    QHash<int,cimg_library::CImg<uint8_t>> m_visImgs;
+    QHash<int,std::array<cv::Vec3f,31>> m_descriptors;
+
+    QHash<int,std::array<cv::Vec3f,31>> m_selectedDescriptors;
+    GraphVisualization *m_vis = new GraphVisualization();
     void refreshVis();
 };
-
-

@@ -42,7 +42,7 @@ QFuture<void> DICECoefficientVoxels::computeDescriptors()
 
 QFuture<void> DICECoefficientVoxels::computeAllDistances()
 {
-    std::function<void(const MocapAnimation*)> f = std::bind(&DICECoefficientVoxels::computeDistToAll,std::placeholders::_1, m_distanceMatrix, m_anims);
+    std::function<void(const MocapAnimation*)> f = std::bind(&DICECoefficientVoxels::computeDistToAll,std::placeholders::_1, m_distanceMatrix, m_anims, m_descriptors);
     const QFuture<void> future = QtConcurrent::map(m_anims, f);
     m_distanceWatcher.setFuture(future);
     return future;
@@ -56,7 +56,7 @@ float DICECoefficientVoxels::getDistance(MocapAnimation &anim1, MocapAnimation &
     }
     else
     {
-        const float res = computeDist(anim1,anim2);
+        const float res = computeDist(m_descriptors[anim1.getId()],m_descriptors[anim2.getId()]);
         m_distanceMatrix.at<float>(anim1.getId(),anim2.getId()) =
         m_distanceMatrix.at<float>(anim2.getId(),anim1.getId()) = res;
 
@@ -97,14 +97,12 @@ void DICECoefficientVoxels::onComputeDistAllFinished()
     cv::imwrite("/home/mkrajicek/Documents/SDIPR/mocap-segmenting/DICEVoxelsHDM65-alt.exr",m_distanceMatrix);
 }
 
-float DICECoefficientVoxels::computeDist(const MocapAnimation &first, const MocapAnimation &second)
+float DICECoefficientVoxels::computeDist(cimg_library::CImg<uint8_t> desc1,
+                                         cimg_library::CImg<uint8_t> desc2)
 {
-    cimg_library::CImg<int> f = first.getVoxelMap();
-    cimg_library::CImg<int> s = second.getVoxelMap();
-
-    cimg_library::CImg<int> tp = f.get_min(s);
-    cimg_library::CImg<int> fp = f - tp;
-    cimg_library::CImg<int> fn = s - tp;
+    cimg_library::CImg<int> tp = desc1.get_min(desc2);
+    cimg_library::CImg<int> fp = desc1 - tp;
+    cimg_library::CImg<int> fn = desc2 - tp;
 
     auto tpHist = tp.get_histogram(2,0,1);
     auto fpHist = fp.get_histogram(2,0,1);
@@ -120,7 +118,7 @@ float DICECoefficientVoxels::computeDist(const MocapAnimation &first, const Moca
     return 1.0f/dice;
 }
 
-void DICECoefficientVoxels::computeDistToAll(const MocapAnimation *anim,cv::Mat &reducedResults,QVector<MocapAnimation*> anims)
+void DICECoefficientVoxels::computeDistToAll(const MocapAnimation *anim,cv::Mat &reducedResults,QVector<MocapAnimation*> anims, QHash<int,cimg_library::CImg<uint8_t>> descriptors)
 {
     const int id = anim->getId();
     auto it = anims.begin();
@@ -129,7 +127,7 @@ void DICECoefficientVoxels::computeDistToAll(const MocapAnimation *anim,cv::Mat 
     {
         const int id2 = (*it)->getId();
         reducedResults.at<float>(id,id2) =
-        reducedResults.at<float>(id2,id) = computeDist(**it,*anim);
+        reducedResults.at<float>(id2,id) = computeDist(descriptors[(*it)->getId()],descriptors[anim->getId()]);
         ++it;
     }
 }

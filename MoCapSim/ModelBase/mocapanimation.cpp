@@ -46,7 +46,7 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
     }
 
     createTreeStructure();
-
+/*
     computeTotalMovementQuantity();
     computeMovementQuantityAxisReduced();
     computeMovementQuantityPoints();
@@ -57,6 +57,7 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
     computeVoxels();
     computeAxisFourierDescriptors();
     computeDFCFourierDescriptors();
+    */
 }
 
 MocapAnimation::~MocapAnimation()

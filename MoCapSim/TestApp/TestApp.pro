@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     methodtester.cpp \
     categorymapper.cpp \
     plugininfo.cpp \
-    weigtedmean.cpp
+    weigtedmean.cpp \
+    filterandrefine.cpp
 
 HEADERS  += mainwindow.h \
     functions.h \
@@ -28,11 +29,13 @@ HEADERS  += mainwindow.h \
     categorymapper.hpp \
     plugininfo.h \
     weigtedmean.h \
-    idistancefunction.h
+    idistancefunction.h \
+    filterandrefine.h
 
 FORMS    += mainwindow.ui \
     plugininfo.ui \
-    weigtedmean.ui
+    weigtedmean.ui \
+    filterandrefine.ui
 
 INCLUDEPATH += /usr/include/eigen3
 

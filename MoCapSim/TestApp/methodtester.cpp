@@ -187,6 +187,30 @@ void MethodTester::printAverageFirstMatch(QVector<Result> &results)
               << std::endl;
 }
 
+QVector<Result> MethodTester::createResults(QHash<int, MocapAnimation *> m_anims, cv::Mat distanceMatrix, int noResultsPerAnim)
+{
+    cv::Mat indexes;
+    cv::sortIdx(distanceMatrix,indexes,CV_SORT_EVERY_ROW | CV_SORT_ASCENDING);
+
+    QVector<Result> results;
+
+    for (int i = 0; i < indexes.rows; ++i)
+    {
+        QVector<QPair<float,MocapAnimation*>> dist;
+
+        for (int col = 0; col < noResultsPerAnim; ++col)
+        {
+            const int animIndex = indexes.at<int>(i,col);
+            dist.push_back({distanceMatrix.at<float>(i,animIndex),m_anims[animIndex]});
+        }
+
+        Result r(m_anims[i],dist);
+        results.push_back(r);
+    }
+
+    return results;
+}
+
 cv::Mat MethodTester::testMethod(IDistanceFunction *plugin, cv::Mat previousRes, int numOfPrevResults)
 {
     cv::Rect croppROI(0,0,numOfPrevResults,previousRes.rows);
@@ -208,5 +232,3 @@ cv::Mat MethodTester::testMethod(IDistanceFunction *plugin, cv::Mat previousRes,
     cv::sortIdx(newDistanceMatrix,newIndexes,CV_SORT_EVERY_ROW | CV_SORT_ASCENDING);
     return newIndexes(croppROI);
 }
-
-

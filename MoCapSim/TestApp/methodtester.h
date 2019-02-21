@@ -26,6 +26,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <QVector>
+#include <QHash>
 
 #include <ostream>
 #include <functional>
@@ -48,6 +49,8 @@ public:
     static void printMethodCatAccuracy(QMap<int16_t, qreal> catAcc, bool verbose = true);
     static void printMethodError(int numOfPrevResults, QVector<int> checkSet, QVector<float> output);
     static void printAverageFirstMatch(QVector<Result> &results);
+
+    static QVector<Result> createResults(QHash<int,MocapAnimation*> m_anims, cv::Mat distanceMatrix, int noResultsPerAnim);
 
     cv::Mat testMethod(IDistanceFunction *plugin, cv::Mat previousRes, int numOfPrevResults);
 };

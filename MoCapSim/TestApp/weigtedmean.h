@@ -33,10 +33,6 @@ private:
 
     QHash<int,MocapAnimation*> m_anims;
 
-    QVector<IDistanceFunction*> m_plugins;
-    QVector<QSlider*> m_sliders;
-
-    QVector<Result> createResults(cv::Mat distanceMatrix);
-
+    QVector<QPair<QSlider*,IDistanceFunction*>> m_plugins;
     ResultVisualization *m_resultVis = new ResultVisualization;
 };

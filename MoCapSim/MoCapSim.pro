@@ -21,7 +21,8 @@ SUBDIRS += \
     ModelBase \
     TestApp \
     Visualization \
-    DICECoefficientVoxels
+    DICECoefficientVoxels \
+    MovementAmount
 
 TestApp.depends = Visualization
 Visualization.depends = ModelBase
