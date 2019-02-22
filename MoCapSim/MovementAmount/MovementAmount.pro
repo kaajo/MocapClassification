@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += widgets datavisualization
+QT += widgets charts
 
 TARGET = MovementAmount
 TEMPLATE = lib

@@ -48,9 +48,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_animPlayer = new AnimPlayer();
     ui->animPlayer->layout()->addWidget(m_animPlayer);
 
-    m_vis = new MetricVisualization;
-    ui->scrollAreaWidgetContents->layout()->addWidget(m_vis);
-
     m_weightedMean = new WeigtedMean;
     ui->WeightedMeanTab->layout()->addWidget(m_weightedMean);
 
@@ -61,7 +58,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     qDeleteAll(m_anims);
-    delete m_vis;
     delete ui;
 }
 
@@ -71,13 +67,11 @@ void MainWindow::animationChecked(QListWidgetItem *item)
 
     if (item->checkState() == Qt::CheckState::Checked)
     {
-        m_vis->addAnimation(m_anims[id]);
         m_animPlayer->addAnimation(m_anims[id]);
         std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionAdded(id);});
     }
     else
     {
-        m_vis->removeAnimation(m_anims[id]);
         m_animPlayer->removeAnimation(m_anims[id]);
         std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionRemoved(id);});
     }

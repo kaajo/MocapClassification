@@ -58,7 +58,6 @@ private:
     bool loadDataset(const QString &path,const int maxNOAnims = -1);
 
     QVector<MocapAnimation*> m_anims;
-    MetricVisualization *m_vis = nullptr;
     AnimPlayer *m_animPlayer = nullptr;
 
     void addAnimsToUI();

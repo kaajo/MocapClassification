@@ -29,7 +29,7 @@ class MOVEMENTAMOUNTSHARED_EXPORT MovementAmount : public QObject, public IDista
 {
     Q_OBJECT
     Q_INTERFACES(IDistanceFunction)
-    Q_PLUGIN_METADATA(IID "MovementAmount.CVCompareHist/1.0")
+    Q_PLUGIN_METADATA(IID "MovementAmount.CVCompareHist.ChiSquare/1.0")
 
 public:
     MovementAmount(QObject *parent = nullptr);

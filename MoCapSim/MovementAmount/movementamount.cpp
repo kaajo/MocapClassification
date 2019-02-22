@@ -133,6 +133,9 @@ float MovementAmount::computeDist(std::array<cv::Vec3f,31> desc1, std::array<cv:
         pnts2.at<float>(2*s+i) = desc2[i][2];
     }
 
+    normHistogram(pnts1);
+    normHistogram(pnts2);
+
     return static_cast<float>(std::min(cv::compareHist(pnts1,pnts2,CV_COMP_CHISQR),
                                        cv::compareHist(pnts2,pnts1,CV_COMP_CHISQR)));
 }
@@ -175,5 +178,5 @@ QPair<int,std::array<cv::Vec3f,31>> MovementAmount::computeDescriptor(const Moca
 
 void MovementAmount::refreshVis()
 {
-
+    m_vis->update(m_selectedDescriptors);
 }

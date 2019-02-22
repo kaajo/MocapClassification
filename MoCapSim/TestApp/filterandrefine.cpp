@@ -20,7 +20,6 @@ FilterAndRefine::~FilterAndRefine()
 void FilterAndRefine::addPlugin(QString name, IDistanceFunction *plugin)
 {
     ui->pluginComboBox->addItem(name);
-
     m_plugins.insert(name,plugin);
 }
 
@@ -45,15 +44,16 @@ void FilterAndRefine::onSliderReleased()
     for (int i = 1; i < m_tabs.size(); ++i)
     {
         dist = cv::Mat(m_anims.size(),m_anims.size(),CV_32FC1, cv::Scalar(std::numeric_limits<float>::max()));
-        cv::Mat newDist = m_tabs[i].plugin->getDistanceMatrix();
+        const cv::Mat newDist = m_tabs[i].plugin->getDistanceMatrix();
 
         for (const Result &res : resultVec)
         {
             const int id = res.animation()->getId();
 
-            for (const QPair<float, MocapAnimation*> &pair : res.distance())
+            for (int j = 0; j < m_tabs[i].slider->value(); ++j)
             {
-                dist.at<float>(id,pair.second->getId()) = pair.first;
+                const QPair<float, MocapAnimation*> pair = res.distance()[j];
+                dist.at<float>(id,pair.second->getId()) = newDist.at<float>(id,pair.second->getId());
             }
         }
 
