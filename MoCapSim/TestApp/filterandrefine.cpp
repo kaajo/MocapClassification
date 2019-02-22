@@ -1,3 +1,20 @@
+/*
+    Copyright (C) 2019  Miroslav Krajíček
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "filterandrefine.h"
 #include "ui_filterandrefine.h"
 
@@ -69,12 +86,12 @@ void FilterAndRefine::on_addStepButton_clicked()
     tab->setLayout(mainLayout);
 
     QLayout *sliderLayout = new QHBoxLayout();
-    QLabel *l = new QLabel("0");
+    QLabel *label = new QLabel("0");
     QSlider *slider = new QSlider(Qt::Orientation::Horizontal);
     slider->setRange(0, m_tabs.empty() ? m_anims.size() : m_tabs.last().slider->value());
-    connect(slider,&QSlider::valueChanged,l, QOverload<int>::of(&QLabel::setNum));
+    connect(slider,&QSlider::valueChanged,label, QOverload<int>::of(&QLabel::setNum));
     connect(slider,&QSlider::sliderReleased,this, &FilterAndRefine::onSliderReleased);
-    sliderLayout->addWidget(l);
+    sliderLayout->addWidget(label);
     sliderLayout->addWidget(slider);
 
     mainLayout->addLayout(sliderLayout);

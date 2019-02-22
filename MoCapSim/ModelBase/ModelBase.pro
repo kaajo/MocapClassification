@@ -23,7 +23,7 @@
 
 QT += opengl concurrent
 
-QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native
+QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native -mtune=native
 
 TARGET = ModelBase
 TEMPLATE = lib

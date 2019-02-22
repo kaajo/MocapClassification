@@ -24,16 +24,11 @@
 #include <QVBoxLayout>
 #include <QDebug>
 
-#include <animplayer.h>
-
-#include <metricvisualization.h>
 #include <mocapanimation.h>
 
 #include "idistancefunction.h"
 #include "categorymapper.hpp"
 #include "plugininfo.h"
-#include "weigtedmean.h"
-#include "filterandrefine.h"
 
 #include "modelfactory.h"
 

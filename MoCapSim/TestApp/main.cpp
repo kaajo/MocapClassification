@@ -35,25 +35,6 @@
 
 #include "functions.h"
 
-/*
-#include <cuda_runtime.h>
-
-#include <helper_functions.h>
-
-extern "C"
-int cuda_main(int argc, char *argv[],  std::vector<std::vector<std::vector<float3>>> anims);
-*/
-
-/*
-bool areEqual(const cv::Mat& a, const cv::Mat& b) {
-    cv::Mat temp;
-    cv::bitwise_xor(a,b,temp); //It vectorizes well with SSE/NEON
-    return !(cv::countNonZero(temp) );
-}
-*/
-
-
-
 double checkSpeedCreateDescriptor(int repeatTimes, int index, QVector<MocapAnimation *> anims)
 {
     double sum = 0.0;
@@ -178,7 +159,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     MainWindow w;
-    //w.setWindowState(Qt::WindowMaximized);
+    w.setWindowState(Qt::WindowMaximized);
 
     /*
     for (int i = 0; i < anims.size(); ++i)
@@ -237,7 +218,7 @@ int main(int argc, char *argv[])
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM65(hdm130path);
+    //w.loadHDM65(hdm130path);
 /*    auto anims65 = w.anims();
     cv::Mat MDDDTWNormMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","MDDDTWNormHDM65.exr");
     cv::Mat DiceVoxelsMatrix65 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM65.exr");
@@ -276,7 +257,7 @@ int main(int argc, char *argv[])
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    w.loadHDM14(hdm14path);
+    w.loadHDM14(hdm14path);
 //    auto anims14 = w.anims();
 //    cv::Mat MDDDTWNormMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM14.exr");
 //    cv::Mat DiceVoxelsMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM14.exr");

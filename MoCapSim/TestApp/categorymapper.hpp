@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2017  Miroslav Krajíček
+    Copyright (C) 2019  Miroslav Krajíček
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef CATEGORYMAPPER_HPP
-#define CATEGORYMAPPER_HPP
+#pragma once
 
 #include <QVector>
 #include <QHash>
@@ -34,5 +33,3 @@ public:
 
 
 };
-
-#endif // CATEGORYMAPPER_HPP

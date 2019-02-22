@@ -1,5 +1,5 @@
 #
-#    Copyright (C) 2017  Miroslav Krajíček
+#    Copyright (C) 2019  Miroslav Krajíček
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,10 +20,9 @@ TEMPLATE = subdirs
 SUBDIRS += \
     ModelBase \
     TestApp \
-    Visualization \
     DICECoefficientVoxels \
     MovementAmount
 
-TestApp.depends = Visualization
-Visualization.depends = ModelBase
+TestApp.depends = ModelBase
 DICECoefficientVoxels.depends = ModelBase
+MovementAmount.depends = ModelBase

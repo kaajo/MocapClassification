@@ -6,6 +6,8 @@
 
 QT       += widgets datavisualization
 
+QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native -mtune=native
+
 TARGET = DICECoefficientVoxels
 TEMPLATE = lib
 CONFIG += plugin

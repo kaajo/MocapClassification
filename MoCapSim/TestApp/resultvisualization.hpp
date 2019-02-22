@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2017  Miroslav Krajíček
+    Copyright (C) 2019  Miroslav Krajíček
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,12 +15,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RESULTVISUALIZATION_HPP
-#define RESULTVISUALIZATION_HPP
+#pragma once
 
 #include <QWidget>
-
-#include "visualization_global.h"
 
 #include <resultstats.hpp>
 
@@ -28,12 +25,12 @@ namespace Ui {
 class ResultVisualization;
 }
 
-class VISUALIZATIONSHARED_EXPORT ResultVisualization : public QWidget
+class ResultVisualization : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ResultVisualization(QWidget *parent = 0);
+    explicit ResultVisualization(QWidget *parent = nullptr);
     ~ResultVisualization();
 
     void setResult(const ResultMetrics &result);
@@ -46,5 +43,3 @@ private:
     qreal findMedian(QList<qreal> vec, int begin, int end);
     qreal findVariance(QList<qreal> vec);
 };
-
-#endif // RESULTVISUALIZATION_HPP

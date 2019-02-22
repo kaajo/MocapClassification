@@ -15,19 +15,18 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 #include <QListWidget>
 
+#include "animplayer.h"
+#include "weigtedmean.h"
+#include "filterandrefine.h"
 
 class IDistanceFunction;
 class MocapAnimation;
 class AnimPlayer;
-class MetricVisualization;
-class WeigtedMean;
-class FilterAndRefine;
 
 namespace Ui {
 class MainWindow;
@@ -70,5 +69,3 @@ private:
     WeigtedMean *m_weightedMean = nullptr;
     FilterAndRefine *m_filterAndRefine = nullptr;
 };
-
-#endif // MAINWINDOW_H
