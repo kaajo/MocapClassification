@@ -31,6 +31,8 @@ private slots:
 
     void on_addStepButton_clicked();
 
+    void on_tabWidget_tabCloseRequested(int index);
+
 private:
     Ui::FilterAndRefine *ui;
 

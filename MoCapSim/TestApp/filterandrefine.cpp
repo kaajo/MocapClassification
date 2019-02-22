@@ -70,18 +70,24 @@ void FilterAndRefine::on_addStepButton_clicked()
 
     QLayout *sliderLayout = new QHBoxLayout();
     QLabel *l = new QLabel("0");
-    QSlider *s = new QSlider(Qt::Orientation::Horizontal);
-    s->setRange(0, m_tabs.empty() ? m_anims.size() : m_tabs.last().slider->value());
-    connect(s,&QSlider::valueChanged,l, QOverload<int>::of(&QLabel::setNum));
-    connect(s,&QSlider::sliderReleased,this, &FilterAndRefine::onSliderReleased);
+    QSlider *slider = new QSlider(Qt::Orientation::Horizontal);
+    slider->setRange(0, m_tabs.empty() ? m_anims.size() : m_tabs.last().slider->value());
+    connect(slider,&QSlider::valueChanged,l, QOverload<int>::of(&QLabel::setNum));
+    connect(slider,&QSlider::sliderReleased,this, &FilterAndRefine::onSliderReleased);
     sliderLayout->addWidget(l);
-    sliderLayout->addWidget(s);
+    sliderLayout->addWidget(slider);
 
     mainLayout->addLayout(sliderLayout);
 
     ResultVisualization *resultVis = new ResultVisualization;
     tab->layout()->addWidget(resultVis);
 
-    m_tabs.push_back({m_plugins[ui->pluginComboBox->currentText()],resultVis,s});
+    m_tabs.push_back({m_plugins[ui->pluginComboBox->currentText()],resultVis,slider});
     ui->tabWidget->addTab(tab,ui->pluginComboBox->currentText());
+}
+
+void FilterAndRefine::on_tabWidget_tabCloseRequested(int index)
+{
+    m_tabs.remove(index);
+    ui->tabWidget->removeTab(index);
 }

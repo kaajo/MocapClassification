@@ -71,6 +71,8 @@ QWidget* DICECoefficientVoxels::getVisualization()
 
 void DICECoefficientVoxels::selectionAdded(int animId)
 {
+    if (!m_descriptors.contains(animId)) return;
+
     m_visImgs.insert(animId,m_descriptors[animId]);
     refreshVis();
 }

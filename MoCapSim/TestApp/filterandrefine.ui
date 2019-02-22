@@ -50,6 +50,9 @@
      <property name="documentMode">
       <bool>false</bool>
      </property>
+     <property name="tabsClosable">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
   </layout>
