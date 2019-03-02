@@ -34,7 +34,7 @@ FilterAndRefine::~FilterAndRefine()
     delete ui;
 }
 
-void FilterAndRefine::addPlugin(QString name, IDistanceFunction *plugin)
+void FilterAndRefine::addPlugin(QString name, QSharedPointer<IDistanceFunction> plugin)
 {
     ui->pluginComboBox->addItem(name);
     m_plugins.insert(name,plugin);

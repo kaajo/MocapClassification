@@ -57,7 +57,7 @@ class AnimPlayer : public QWidget
     Q_OBJECT
 
 public:
-    explicit AnimPlayer(QWidget *parent = 0);
+    explicit AnimPlayer(QWidget *parent = nullptr);
     ~AnimPlayer();
 
     void addAnimation(MocapAnimation *anim);

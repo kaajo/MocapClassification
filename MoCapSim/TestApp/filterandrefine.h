@@ -38,7 +38,7 @@ public:
     explicit FilterAndRefine(QWidget *parent = nullptr);
     ~FilterAndRefine();
 
-    void addPlugin(QString name, IDistanceFunction *plugin);
+    void addPlugin(QString name, QSharedPointer<IDistanceFunction> plugin);
 
     void setAnimations(QVector<MocapAnimation*> &anims);
 
@@ -54,11 +54,11 @@ private:
 
     QHash<int,MocapAnimation*> m_anims;
 
-    QHash<QString,IDistanceFunction*> m_plugins;
+    QHash<QString,QSharedPointer<IDistanceFunction>> m_plugins;
 
     struct TabData
     {
-        IDistanceFunction *plugin = nullptr;
+        QSharedPointer<IDistanceFunction> plugin;
         ResultVisualization *visualization = nullptr;
         QSlider *slider = nullptr;
     };

@@ -14,10 +14,10 @@ class PluginInfo : public QWidget
     Q_OBJECT
 
 public:
-    explicit PluginInfo(IDistanceFunction *plugin, QString iid, QWidget *parent = nullptr);
+    explicit PluginInfo(QSharedPointer<IDistanceFunction> plugin, QString iid, QWidget *parent = nullptr);
     ~PluginInfo();
 
-    void setPlugin(IDistanceFunction *plugin);
+    void setPlugin(QSharedPointer<IDistanceFunction> plugin);
 
 private slots:
     void on_computeDesc_clicked();
@@ -27,7 +27,7 @@ private slots:
 private:
     Ui::PluginInfo *ui = nullptr;
 
-    IDistanceFunction *m_plugin = nullptr;
+    QSharedPointer<IDistanceFunction> m_plugin;
     QFutureWatcher<void> m_descWatcher;
     QFutureWatcher<void> m_distWatcher;
 };

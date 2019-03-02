@@ -20,7 +20,7 @@ public:
     explicit WeigtedMean( QWidget *parent = nullptr);
     ~WeigtedMean();
 
-    void addPlugin(QString name, IDistanceFunction *plugin);
+    void addPlugin(QString name, QSharedPointer<IDistanceFunction> plugin);
 
     void setAnimations(QVector<MocapAnimation*> &anims);
 
@@ -32,6 +32,6 @@ private:
 
     QHash<int,MocapAnimation*> m_anims;
 
-    QVector<QPair<QSlider*,IDistanceFunction*>> m_plugins;
+    QVector<QPair<QSlider*,QSharedPointer<IDistanceFunction>>> m_plugins;
     ResultVisualization *m_resultVis = new ResultVisualization;
 };

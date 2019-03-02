@@ -64,7 +64,7 @@ private:
 
     void datasetStats();
 
-    QVector<IDistanceFunction*> m_plugins;
+    QHash<QString,QSharedPointer<IDistanceFunction>> m_plugins;
 
     WeigtedMean *m_weightedMean = nullptr;
     FilterAndRefine *m_filterAndRefine = nullptr;

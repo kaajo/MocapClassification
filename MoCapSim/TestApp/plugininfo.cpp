@@ -1,7 +1,7 @@
 #include "plugininfo.h"
 #include "ui_plugininfo.h"
 
-PluginInfo::PluginInfo(IDistanceFunction *plugin, QString iid, QWidget *parent) :
+PluginInfo::PluginInfo(QSharedPointer<IDistanceFunction> plugin, QString iid, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PluginInfo)
 {
@@ -21,7 +21,7 @@ PluginInfo::~PluginInfo()
     delete ui;
 }
 
-void PluginInfo::setPlugin(IDistanceFunction *plugin)
+void PluginInfo::setPlugin(QSharedPointer<IDistanceFunction> plugin)
 {
     m_plugin = plugin;
 

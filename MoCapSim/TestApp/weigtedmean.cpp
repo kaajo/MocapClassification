@@ -23,7 +23,7 @@ WeigtedMean::~WeigtedMean()
     delete ui;
 }
 
-void WeigtedMean::addPlugin(QString name, IDistanceFunction *plugin)
+void WeigtedMean::addPlugin(QString name, QSharedPointer<IDistanceFunction> plugin)
 {
     QTableWidgetItem *newItem = new QTableWidgetItem(name);
     int rowCount = ui->tableWidget->rowCount();

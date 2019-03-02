@@ -63,12 +63,12 @@ void MainWindow::animationChecked(QListWidgetItem *item)
     if (item->checkState() == Qt::CheckState::Checked)
     {
         m_animPlayer->addAnimation(m_anims[id]);
-        std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionAdded(id);});
+        std::for_each(m_plugins.begin(),m_plugins.end(),[id](auto p){p->selectionAdded(id);});
     }
     else
     {
         m_animPlayer->removeAnimation(m_anims[id]);
-        std::for_each(m_plugins.begin(),m_plugins.end(),[id](IDistanceFunction *p){p->selectionRemoved(id);});
+        std::for_each(m_plugins.begin(),m_plugins.end(),[id](auto p){p->selectionRemoved(id);});
     }
 }
 
@@ -180,19 +180,27 @@ void MainWindow::on_actionLoadPlugin_triggered()
     for (const QString &fileName : entryList) {
         QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = loader.instance();
-        if (plugin) {
-            qDebug() << "loaded plugin:" << fileName;
-            auto object = qobject_cast<IDistanceFunction*>(plugin);
-            object->setAnimations(m_anims);
-            m_plugins.push_back(object);
-
+        if (plugin)
+        {
+            QSharedPointer<IDistanceFunction> pluginObj(qobject_cast<IDistanceFunction*>(plugin));
             const QString pluginName = loader.metaData().find("IID")->toString("NOT FOUND");
 
-            PluginInfo *info = new PluginInfo(object,pluginName);
+            if (m_plugins.contains(pluginName))
+            {
+                continue;
+            }
+
+            qDebug() << "loading plugin:" << fileName;
+
+            m_plugins.insert(pluginName,pluginObj);
+
+            pluginObj->setAnimations(m_anims);
+
+            PluginInfo *info = new PluginInfo(pluginObj,pluginName);
             ui->scrollAreaWidgetContents->layout()->addWidget(info);
 
-            m_weightedMean->addPlugin(pluginName,object);
-            m_filterAndRefine->addPlugin(pluginName,object);
+            m_weightedMean->addPlugin(pluginName,pluginObj);
+            m_filterAndRefine->addPlugin(pluginName,pluginObj);
         }
     }
 }
