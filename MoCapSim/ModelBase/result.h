@@ -29,7 +29,7 @@ class Result
 {
 public:
     Result(){}
-    Result(const MocapAnimation *anim,const QVector<QPair<float,MocapAnimation*>> res);
+    Result(const MocapAnimation *anim, const QVector<QPair<float, MocapAnimation *> > &res);
 
     void printResult();
 

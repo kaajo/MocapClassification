@@ -76,7 +76,7 @@ void AnimPlayer::addAnimation(MocapAnimation *anim)
     Qt3DExtras::QPhongMaterial *material = new Qt3DExtras::QPhongMaterial(rootEntity);
     material->setDiffuse(QColor::fromRgb((rand()%2)*r,g,b,128));
 
-    std::vector<std::array<BodyNode*,31> > tree = anim->getTreePosesInTime();
+    //std::vector<std::array<BodyNode*,31> > tree = anim->getTreePosesInTime();
 
     for(int i = 0; i < 31; ++i)
     {

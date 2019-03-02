@@ -21,7 +21,8 @@ SUBDIRS += \
     ModelBase \
     TestApp \
     DICECoefficientVoxels \
-    MovementAmount
+    MovementAmount \
+    MDDerivativeDTW
 
 TestApp.depends = ModelBase
 DICECoefficientVoxels.depends = ModelBase

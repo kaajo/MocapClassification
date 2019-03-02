@@ -29,14 +29,6 @@
 
 #include <opencv2/core/core.hpp>
 
-/*
-template <typename T>
-T clip(const T& n, const T& lower, const T& upper) {
-  return std::max(lower, std::min(n, upper));
-}
-*/
-
-
 #include <CImg.h>
 
 class MocapAnimation
@@ -58,7 +50,7 @@ public:
 
     QVector<QPair<float,MocapAnimation*>> getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn,const MocapAnimation::SimilarityFunction function, cv::Mat &distanceMat) const;
 
-    inline const cv::Vec3f& operator()(int node, int frame) const
+    inline const cv::Vec3f& operator()(const int node,const int frame) const
     {
         assert(node >= 0);
         assert(frame >= 0);
@@ -67,6 +59,7 @@ public:
 
         return m_posesInTime.at<cv::Vec3f>(node,frame);
     }
+
     inline const cv::Mat operator()(int node) const
     {
         assert(node >= 0);
@@ -75,6 +68,7 @@ public:
         return m_posesInTime.row(node);
     }
 
+/*
     double PPScomputetotalMovementQuantity();
     double PPScomputeMovementQuantityAxisReduced();
     double PPScomputeAxisMovementQuantity();
@@ -92,6 +86,8 @@ public:
     std::vector<cv::Mat> getDFCFourierDescriptor() const {return m_distanceFromCenterFd;}
 
     std::vector<std::array<BodyNode*,31> > getTreePosesInTime() const;
+*/
+    inline cv::Mat getPosesInTime() const {return m_posesInTime;}
 
 private:
     static QPair<float,MocapAnimation*> mapFun(MocapAnimation *it, const MocapAnimation*anim, MocapAnimation::SimilarityFunction function);
@@ -105,11 +101,13 @@ private:
      */
     cv::Mat m_posesInTime;
 
+    /*
     void createTreeStructure();
     std::vector<std::array<BodyNode*,31>> m_treePosesInTime;
-
+*/
     //////////////////
 
+    /*
     void computeTotalMovementQuantity();
     float m_totalMovementQuantity = 0.0f;
 
@@ -129,7 +127,7 @@ private:
     void computeAxisMovementAcc();
 
     int m_voxelsPerMeter = 5;
-    cimg_library::CImg<float> m_voxelMap = cimg_library::CImg<float>(20,20,20,1,0);
+    cimg_library::CImg<float> m_voxelMap; // = cimg_library::CImg<float>(20,20,20,1,0);
     void computeVoxels();
 
     std::vector<cv::Mat> m_axisfd;
@@ -137,6 +135,7 @@ private:
 
     std::vector<cv::Mat> m_distanceFromCenterFd;
     void computeDFCFourierDescriptors();
+    */
 };
 
 #endif // MOCAPMODEL_H

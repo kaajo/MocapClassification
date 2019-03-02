@@ -31,7 +31,6 @@ HEADERS  += mainwindow.h \
     categorymapper.hpp \
     plugininfo.h \
     weigtedmean.h \
-    idistancefunction.h \
     filterandrefine.h \
     animplayer.h \
     resultvisualization.hpp

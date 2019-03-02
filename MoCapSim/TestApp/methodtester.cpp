@@ -58,9 +58,9 @@ void MethodTester::testMethod(const QVector<MocapAnimation*> &anims, const QVect
 
         for (int i = 0; i < anims.size(); ++i)
         {
-            auto res = anims[i]->getDistance(results[i].distance(),std::get<0>(functions[f]), std::get<1>(functions[f]),distMatrix);
+            //auto res = 1.0f; // anims[i]->getDistance(results[i].distance(),std::get<0>(functions[f]), std::get<1>(functions[f]),distMatrix);
 
-            Result r(anims[i],res);
+            Result r(anims[i],{}); //res
 
             resultsTmp.push_back(r);
 

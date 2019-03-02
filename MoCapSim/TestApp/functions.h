@@ -31,7 +31,7 @@
 
 
 #define NUM_OF_NODES 31
-
+/*
 namespace SimilarityFunctions {
 
 float movementAmount(const MocapAnimation &first,const MocapAnimation &second, CompareHist::CompareHistogram method)
@@ -483,7 +483,7 @@ float dominantPoints(const MocapAnimation &first,const MocapAnimation &second)
 
 
     return 100000.0f;
-    */
+    *
 }
 
 float pointDistance(const MocapAnimation &first,const MocapAnimation &second)
@@ -798,5 +798,5 @@ float DistanceTransformVoxels(const MocapAnimation &first,const MocapAnimation &
 }
 
 } //SimilarityFunctions
-
+*/
 #endif // FUNCTIONS_H

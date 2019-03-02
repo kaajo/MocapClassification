@@ -45,7 +45,8 @@ HEADERS += \
     similaritymatrixcreator.h \
     bodynode.hpp \
     result.h \
-    resultstats.hpp
+    resultstats.hpp \
+    idistancefunction.h
 
 unix {
     target.path = /usr/lib

@@ -40,7 +40,7 @@ double checkSpeedCreateDescriptor(int repeatTimes, int index, QVector<MocapAnima
     double sum = 0.0;
     for (int i = 0 ; i < repeatTimes; ++i)
     {
-        sum += anims[index]->PPScomputeAxisMovementQuantity();
+        //sum += anims[index]->PPScomputeAxisMovementQuantity();
     }
     sum /= static_cast<double>(repeatTimes);
 
@@ -67,7 +67,7 @@ double checkSpeedCompareDescriptor(int repeatTimes, QVector<MocapAnimation *> an
         int randFirst = rand() % anims.size();
         int randSecond = rand() % anims.size();
         std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-        SimilarityFunctions::movementAmount(*anims[randFirst],*anims[randSecond],method);
+        //SimilarityFunctions::movementAmount(*anims[randFirst],*anims[randSecond],method);
         std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
         sum += std::chrono::duration_cast<std::chrono::duration<double>>(end-start).count();
@@ -112,7 +112,7 @@ void testSpeedDatasetCompare(QVector<MocapAnimation*> anims)
     }
 }
 */
-
+/*
 void printDescriptors(QVector<MocapAnimation*> anims, std::vector<int> indexes)
 {
     for (size_t i = 0; i < indexes.size(); ++i)
@@ -148,7 +148,7 @@ void printDescriptors(QVector<MocapAnimation*> anims, std::vector<int> indexes)
         std::cout << "____________________________________" << std::endl;
     }
 }
-
+*/
 const QString hdm130path = "/home/mkrajicek/Documents/SDIPR/mocap-segmenting/MoCapSim/objects-annotations-specific-coords_normPOS.data";
 const QString hdm14path = "/home/mkrajicek/Documents/SDIPR/mocap-segmenting/MoCapSim/HDM05-14.data";
 
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //w.loadHDM122(hdm130path,50);
+    //w.loadHDM122(hdm130path);
 /*    auto anims122 = w.anims();
     cv::Mat MDDDTWNormMatrix122 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM122.exr");
     cv::Mat DiceVoxelsMatrix122 = creator.loadMatrix("/home/mkrajicek/Documents/SDIPR/mocap-segmenting","DICEVoxelsHDM122.exr");

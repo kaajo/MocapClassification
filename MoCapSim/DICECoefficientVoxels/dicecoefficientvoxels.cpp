@@ -99,8 +99,8 @@ void DICECoefficientVoxels::onComputeDistAllFinished()
     cv::imwrite("/home/mkrajicek/Documents/SDIPR/mocap-segmenting/DICEVoxelsHDM65-alt.exr",m_distanceMatrix);
 }
 
-float DICECoefficientVoxels::computeDist(cimg_library::CImg<uint8_t> desc1,
-                                         cimg_library::CImg<uint8_t> desc2)
+float DICECoefficientVoxels::computeDist(const cimg_library::CImg<uint8_t> &desc1,
+                                         const cimg_library::CImg<uint8_t> &desc2)
 {
     cimg_library::CImg<int> tp = desc1.get_min(desc2);
     cimg_library::CImg<int> fp = desc1 - tp;

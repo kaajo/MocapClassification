@@ -1,8 +1,7 @@
 #pragma once
 
-#include "idistancefunction.h"
-
 #include <mocapanimation.h>
+#include <idistancefunction.h>
 #include <result.h>
 #include <resultvisualization.hpp>
 

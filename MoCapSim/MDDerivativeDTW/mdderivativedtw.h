@@ -17,23 +17,22 @@
 
 #pragma once
 
-#include "movementamount_global.h"
-#include "graphvisualization.h"
+#include "mdderivativedtw_global.h"
 
 #include <idistancefunction.h>
 
 #include <QObject>
 #include <QFutureWatcher>
 
-class MOVEMENTAMOUNTSHARED_EXPORT MovementAmount : public QObject, public IDistanceFunction
+class MDDERIVATIVEDTWSHARED_EXPORT MDDerivativeDTW : public QObject, public IDistanceFunction
 {
     Q_OBJECT
     Q_INTERFACES(IDistanceFunction)
-    Q_PLUGIN_METADATA(IID "MovementAmount.CVCompareHist.ChiSquare/1.0")
+    Q_PLUGIN_METADATA(IID "MDDDTW.Normalized/1.0")
 
 public:
-    MovementAmount(QObject *parent = nullptr);
-    virtual ~MovementAmount() override = default;
+    MDDerivativeDTW(QObject *parent = nullptr);
+    virtual ~MDDerivativeDTW() override = default;
 
     void setAnimations(QVector<MocapAnimation*> animations) override;
 
@@ -50,21 +49,18 @@ private slots:
     void onComputeDistAllFinished();
 
 private:
-    static float computeDist(std::array<cv::Vec3f,31> desc1, std::array<cv::Vec3f,31> desc2);
+    static float computeDist(const MocapAnimation &first, const MocapAnimation &second);
+    static float computeDistOpt(const MocapAnimation &first, const MocapAnimation &second, const cv::Mat &descFirst, const cv::Mat &descSecond);
 
-    static void computeDistToAll(const MocapAnimation *anim, cv::Mat &reducedResults,QVector<MocapAnimation*> anims,
-                                 QHash<int,std::array<cv::Vec3f,31>> descriptors);
+    static QPair<int,cv::Mat> computeGradient(const MocapAnimation *const anim);
+    QHash<int,cv::Mat> m_descriptors;
+    QFutureWatcher<QPair<int,cv::Mat>> m_descWatcher;
+
+    static void computeDistToAll(const MocapAnimation *anim,
+                                 cv::Mat &reducedResults, QVector<MocapAnimation*> anims, QHash<int, cv::Mat> descriptors);
+    QFutureWatcher<void> m_distanceWatcher;
 
     QVector<MocapAnimation*> m_anims;
 
-    QFutureWatcher<void> m_distanceWatcher;
-
-    static QPair<int,std::array<cv::Vec3f,31>> computeDescriptor(const MocapAnimation * const anim);
-    QFutureWatcher<QPair<int,std::array<cv::Vec3f,31>>> m_descWatcher;
-
-    QHash<int,std::array<cv::Vec3f,31>> m_descriptors;
-
-    QHash<int,std::array<cv::Vec3f,31>> m_selectedDescriptors;
-    GraphVisualization *m_vis = new GraphVisualization();
     void refreshVis();
 };

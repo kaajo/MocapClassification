@@ -20,7 +20,7 @@
 #include "dicecoefficientvoxels_global.h"
 #include "voxelvisualization.h"
 
-#include "../TestApp/idistancefunction.h"
+#include <idistancefunction.h>
 
 #include <QObject>
 #include <QFutureWatcher>
@@ -50,7 +50,7 @@ private slots:
     void onComputeDistAllFinished();
 
 private:
-    static float computeDist(cimg_library::CImg<uint8_t> desc1, cimg_library::CImg<uint8_t> desc2);
+    static float computeDist(const cimg_library::CImg<uint8_t> &desc1, const cimg_library::CImg<uint8_t> &desc2);
 
     QVector<MocapAnimation*> m_anims;
 

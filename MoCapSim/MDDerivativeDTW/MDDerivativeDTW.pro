@@ -1,20 +1,18 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2019-02-03T22:26:27
+# Project created by QtCreator 2019-02-22T22:24:27
 #
 #-------------------------------------------------
 
-QT       += widgets datavisualization
+QT       += widgets
 
-QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native -mtune=native
+QMAKE_CXXFLAGS += -std=c++17 -pedantic -Wall -Wextra -march=native -mtune=native -ffast-math
 
-TARGET = DICECoefficientVoxels
+TARGET = MDDerivativeDTW
 TEMPLATE = lib
 CONFIG += plugin
 
-INCLUDEPATH  += ../TestApp
-
-DEFINES += DICECOEFFICIENTVOXELS_LIBRARY
+DEFINES += MDDERIVATIVEDTW_LIBRARY
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -27,16 +25,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-DEFINES += "cimg_display=0" #wow this is cool
-
 SOURCES += \
-        dicecoefficientvoxels.cpp \
-    voxelvisualization.cpp
+        mdderivativedtw.cpp
 
 HEADERS += \
-        dicecoefficientvoxels.h \
-        dicecoefficientvoxels_global.h \ 
-    voxelvisualization.h
+        mdderivativedtw.h \
+        mdderivativedtw_global.h 
 
 unix {
     target.path = /usr/lib
@@ -49,6 +43,3 @@ INCLUDEPATH += $$PWD/../ModelBase
 DEPENDPATH += $$PWD/../ModelBase
 
 unix:!macx: PRE_TARGETDEPS += $$OUT_PWD/../ModelBase/libModelBase.a
-
-FORMS += \
-    voxelvisualization.ui

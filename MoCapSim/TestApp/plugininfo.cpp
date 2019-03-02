@@ -24,9 +24,14 @@ PluginInfo::~PluginInfo()
 void PluginInfo::setPlugin(IDistanceFunction *plugin)
 {
     m_plugin = plugin;
-    plugin->getVisualization()->setMinimumSize(640,480);
-    plugin->getVisualization()->setMinimumSize(1000,480);
-    ui->horizontalLayout->addWidget(plugin->getVisualization());
+
+    auto vis = plugin->getVisualization();
+
+    if (vis)
+    {
+        vis->setMinimumSize(1000,480);
+        ui->horizontalLayout->addWidget(vis);
+    }
 }
 
 void PluginInfo::on_computeDesc_clicked()

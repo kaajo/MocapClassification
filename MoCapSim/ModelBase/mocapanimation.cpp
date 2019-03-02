@@ -44,9 +44,9 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 
         //m_treePosesInTime.push_back(treePose);
     }
-
-    createTreeStructure();
 /*
+    createTreeStructure();
+
     computeTotalMovementQuantity();
     computeMovementQuantityAxisReduced();
     computeMovementQuantityPoints();
@@ -63,7 +63,7 @@ MocapAnimation::MocapAnimation(const int id, const int category, const QVector<M
 MocapAnimation::~MocapAnimation()
 {
 }
-
+/*
 QVector<QPair<float, MocapAnimation*> > MocapAnimation::getDistance(const QVector<QPair<float, MocapAnimation*>> &prevResults, const int topn, const SimilarityFunction function, cv::Mat &distanceMat) const
 {
     QVector<MocapAnimation*> resultsReduced;
@@ -372,3 +372,4 @@ void MocapAnimation::computeDFCFourierDescriptors()
         m_distanceFromCenterFd.push_back(fd);
     }
 }
+*/

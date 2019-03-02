@@ -1,6 +1,6 @@
 #pragma once
 
-#include "idistancefunction.h"
+#include <idistancefunction.h>
 
 #include <QWidget>
 #include <QFutureWatcher>

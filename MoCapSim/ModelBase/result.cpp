@@ -21,7 +21,7 @@
 
 #include "mocapanimation.h"
 
-Result::Result(const MocapAnimation *anim,const QVector<QPair<float, MocapAnimation *> > distance)
+Result::Result(const MocapAnimation *anim,const QVector<QPair<float, MocapAnimation *> > &distance)
     : m_animation(anim),
       m_distance(distance)
 {

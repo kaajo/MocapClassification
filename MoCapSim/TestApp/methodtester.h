@@ -19,9 +19,9 @@
 #define METHODTESTER_H
 
 #include "result.h"
-#include "idistancefunction.h"
 
 #include <resultstats.hpp>
+#include <idistancefunction.h>
 
 #include <opencv2/core/core.hpp>
 

@@ -25,8 +25,8 @@
 #include <QDebug>
 
 #include <mocapanimation.h>
+#include <idistancefunction.h>
 
-#include "idistancefunction.h"
 #include "categorymapper.hpp"
 #include "plugininfo.h"
 

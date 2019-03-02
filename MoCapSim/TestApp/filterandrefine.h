@@ -17,10 +17,10 @@
 
 #pragma once
 
-#include "idistancefunction.h"
 #include "resultvisualization.hpp"
 
 #include <mocapanimation.h>
+#include <idistancefunction.h>
 #include <result.h>
 
 #include <QWidget>
