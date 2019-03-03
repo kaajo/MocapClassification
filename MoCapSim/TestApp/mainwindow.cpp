@@ -18,19 +18,20 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "categorymapper.hpp"
+
+#include "modelfactory.h"
+
+#include <mocapanimation.h>
+#include <idistancefunction.h>
+
 #include <QFileDialog>
 #include <QPluginLoader>
 #include <QThread>
 #include <QVBoxLayout>
 #include <QDebug>
-
-#include <mocapanimation.h>
-#include <idistancefunction.h>
-
-#include "categorymapper.hpp"
-#include "plugininfo.h"
-
-#include "modelfactory.h"
+#include <QStandardPaths>
+#include <QSettings>
 
 #include <iostream>
 
@@ -48,12 +49,55 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_filterAndRefine = new FilterAndRefine;
     ui->FilterAndRefine->layout()->addWidget(m_filterAndRefine);
+
+    //setup writable location
+    QDir dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+    const QString matrixFolder("DistanceMatrix");
+
+    const bool saveDistMat = dataPath.mkpath(matrixFolder);
+    dataPath.cd(matrixFolder);
+
+    if (saveDistMat)
+    {
+        m_saveMatrixDir = dataPath;
+        qDebug() << "Save location for distance matrices: " << dataPath.path();
+    }
+    else
+    {
+        qDebug() << "Could not create save location for distance matrices: " << dataPath.path();
+    }
+
 }
 
 MainWindow::~MainWindow()
 {
     qDeleteAll(m_anims);
     delete ui;
+}
+
+void MainWindow::loadHDM14(const QString &path, const int maxNOAnims)
+{
+    loadDataset(path,"HDM05-14",maxNOAnims);
+    filterAnims({1,14});
+    datasetStats();
+    addAnimsToUI();
+}
+
+void MainWindow::loadHDM65(const QString &path, const int maxNOAnims)
+{
+    loadDataset(path,"HDM05-65",maxNOAnims);
+    CategoryMapper::transform130to65(m_anims);
+    datasetStats();
+    addAnimsToUI();
+}
+
+void MainWindow::loadHDM122(const QString &path, const int maxNOAnims)
+{
+    loadDataset(path,"HDM05-122",maxNOAnims);
+    filterAnims({56, 57,58,59,60, 61 , 138 , 139});
+    datasetStats();
+    addAnimsToUI();
 }
 
 void MainWindow::animationChecked(QListWidgetItem *item)
@@ -72,32 +116,83 @@ void MainWindow::animationChecked(QListWidgetItem *item)
     }
 }
 
-void MainWindow::loadHDM14(const QString &path, const int maxNOAnims)
+void MainWindow::on_actionLoadPlugin_triggered()
 {
-    qDebug() << "";
-    loadDataset(path,maxNOAnims);
-    filterAnims({1,14});
-    datasetStats();
-    addAnimsToUI();
+    const QDir pluginsDir = QDir(QFileDialog::getExistingDirectory(this, tr("Load plugins from directory"),QApplication::applicationDirPath()));
+
+    if (pluginsDir.isEmpty()) return;
+
+    const auto entryList = pluginsDir.entryList(QDir::Files);
+    for (const QString &fileName : entryList) {
+        QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = loader.instance();
+        if (plugin)
+        {
+            QSharedPointer<IDistanceFunction> pluginObj(qobject_cast<IDistanceFunction*>(plugin));
+            const QString pluginName = loader.metaData().find("IID")->toString("NOT FOUND");
+
+            if (m_plugins.contains(pluginName))
+            {
+                continue;
+            }
+
+            qDebug() << "loading plugin:" << fileName;
+
+            m_plugins.insert(pluginName,pluginObj);
+
+            pluginObj->setAnimations(m_anims);
+
+            PluginInfo *info = new PluginInfo({pluginObj,pluginName,m_saveMatrixDir});
+            info->setDatasetName(m_datasetName);
+            ui->scrollAreaWidgetContents->layout()->addWidget(info);
+
+            m_pluginInfos.insert(pluginName,info);
+            m_weightedMean->addPlugin(pluginName,pluginObj);
+            m_filterAndRefine->addPlugin(pluginName,pluginObj);
+        }
+    }
 }
 
-void MainWindow::loadHDM65(const QString &path, const int maxNOAnims)
+void MainWindow::on_actionLoad_HDM14_triggered()
 {
-    loadDataset(path,maxNOAnims);
-    CategoryMapper::transform130to65(m_anims);
-    datasetStats();
-    addAnimsToUI();
+    const QString docLoc = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+    QSettings settings;
+    const QString lastPath = settings.value("lastHDM14Path",docLoc).toString();
+
+    const QString newPath = QFileDialog::getOpenFileName(this,"load HDM14 dataset",lastPath);
+    settings.setValue("lastHDM14Path",newPath);
+
+    loadHDM14(newPath);
 }
 
-void MainWindow::loadHDM122(const QString &path, const int maxNOAnims)
+void MainWindow::on_actionLoad_HDM65_triggered()
 {
-    loadDataset(path,maxNOAnims);
-    filterAnims({56, 57,58,59,60, 61 , 138 , 139});
-    datasetStats();
-    addAnimsToUI();
+    const QString docLoc = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+    QSettings settings;
+    const QString lastPath = settings.value("lastHDM65Path",docLoc).toString();
+
+    const QString newPath = QFileDialog::getOpenFileName(this,"load HDM65 dataset",lastPath);
+    settings.setValue("lastHDM65Path",newPath);
+
+    loadHDM65(newPath);
 }
 
-bool MainWindow::loadDataset(const QString &path, const int maxNOAnims)
+void MainWindow::on_actionLoad_HDM122_triggered()
+{
+    const QString docLoc = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+    QSettings settings;
+    const QString lastPath = settings.value("lastHDM122Path",docLoc).toString();
+
+    const QString newPath = QFileDialog::getOpenFileName(this,"load HDM122 dataset",lastPath);
+    settings.setValue("lastHDM122Path",newPath);
+
+    loadHDM122(newPath);
+}
+
+bool MainWindow::loadDataset(const QString &path, const QString &datasetName, const int maxNOAnims)
 {
     ModelFactory factory;
     qDeleteAll(m_anims);
@@ -108,11 +203,20 @@ bool MainWindow::loadDataset(const QString &path, const int maxNOAnims)
         return false;
     }
 
+    m_datasetName = datasetName;
+
+    for (auto &pluginInfo : m_pluginInfos)
+    {
+        pluginInfo->setDatasetName(m_datasetName);
+    }
+
     return true;
 }
 
 void MainWindow::addAnimsToUI()
 {
+    ui->animsList->clear();
+
     for (int i = 0; i < m_anims.size(); ++i)
     {
         QListWidgetItem *item = new QListWidgetItem(QString::number(m_anims[i]->getId()) + " cat:" +
@@ -124,10 +228,15 @@ void MainWindow::addAnimsToUI()
         item->setData(Qt::UserRole,i);
     }
 
-    connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked);
+    connect(ui->animsList, &QListWidget::itemChanged, this, &MainWindow::animationChecked,Qt::UniqueConnection);
 
     m_weightedMean->setAnimations(m_anims);
     m_filterAndRefine->setAnimations(m_anims);
+
+    for (auto &plugin : m_plugins)
+    {
+        plugin->setAnimations(m_anims);
+    }
 }
 
 void MainWindow::filterAnims(QVector<int> skipCategories)
@@ -167,40 +276,5 @@ void MainWindow::datasetStats()
 
     for (std::pair<int,int> cat : cats) {
         std::cout << cat.first << " , " << cat.second << std::endl;
-    }
-}
-
-void MainWindow::on_actionLoadPlugin_triggered()
-{
-    const QDir pluginsDir = QDir(QFileDialog::getExistingDirectory(this, tr("Load plugins from directory"),QApplication::applicationDirPath()));
-
-    if (pluginsDir.isEmpty()) return;
-
-    const auto entryList = pluginsDir.entryList(QDir::Files);
-    for (const QString &fileName : entryList) {
-        QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-        QObject *plugin = loader.instance();
-        if (plugin)
-        {
-            QSharedPointer<IDistanceFunction> pluginObj(qobject_cast<IDistanceFunction*>(plugin));
-            const QString pluginName = loader.metaData().find("IID")->toString("NOT FOUND");
-
-            if (m_plugins.contains(pluginName))
-            {
-                continue;
-            }
-
-            qDebug() << "loading plugin:" << fileName;
-
-            m_plugins.insert(pluginName,pluginObj);
-
-            pluginObj->setAnimations(m_anims);
-
-            PluginInfo *info = new PluginInfo(pluginObj,pluginName);
-            ui->scrollAreaWidgetContents->layout()->addWidget(info);
-
-            m_weightedMean->addPlugin(pluginName,pluginObj);
-            m_filterAndRefine->addPlugin(pluginName,pluginObj);
-        }
     }
 }

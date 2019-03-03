@@ -157,6 +157,9 @@ int main(int argc, char *argv[])
     srand(time(NULL));
 
     QApplication a(argc, argv);
+    a.setApplicationName("MoCapActionRecognition");
+    a.setApplicationVersion("0.8.0");
+    a.setApplicationDisplayName("MoCapActionRecognition");
 
     MainWindow w;
     w.setWindowState(Qt::WindowMaximized);
@@ -257,7 +260,7 @@ int main(int argc, char *argv[])
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    w.loadHDM14(hdm14path);
+    //w.loadHDM14(hdm14path);
 //    auto anims14 = w.anims();
 //    cv::Mat MDDDTWNormMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","MDDDTWNormHDM14.exr");
 //    cv::Mat DiceVoxelsMatrix14 = creator.loadMatrix("/home/mkrajicek/Dokumenty/SDIPR/mocap-segmenting","DICEVoxelsHDM14.exr");

@@ -39,7 +39,6 @@ public:
 
     QFuture<void> computeDescriptors() override;
     QFuture<void> computeAllDistances() override;
-    float getDistance(MocapAnimation &anim1, MocapAnimation &anim2) override;
 
     QWidget* getVisualization()  override;
     void selectionAdded(int animId) override;
@@ -47,7 +46,6 @@ public:
 
 private slots:
     void onComputeDescFinished();
-    void onComputeDistAllFinished();
 
 private:
     static float computeDist(const cimg_library::CImg<uint8_t> &desc1, const cimg_library::CImg<uint8_t> &desc2);

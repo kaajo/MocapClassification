@@ -32,12 +32,13 @@ public:
 
     virtual QFuture<void> computeDescriptors() = 0;
     virtual QFuture<void> computeAllDistances() = 0;
-    virtual float getDistance(MocapAnimation &anim1, MocapAnimation &anim2) = 0;
-    cv::Mat getDistanceMatrix() const {return m_distanceMatrix;}
 
     virtual QWidget *getVisualization() = 0;
     virtual void selectionAdded(int animId) = 0;
     virtual void selectionRemoved(int animId) = 0;
+
+    cv::Mat getDistanceMatrix() const {return m_distanceMatrix;}
+    void setDistanceMatrix(cv::Mat distMat) {m_distanceMatrix = distMat;}
 
 protected:
     cv::Mat m_distanceMatrix;

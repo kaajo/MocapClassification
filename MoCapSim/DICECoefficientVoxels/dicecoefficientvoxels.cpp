@@ -14,17 +14,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include "dicecoefficientvoxels.h"
 
 #include <QtConcurrent/QtConcurrentMap>
 #include <QTime>
 
-#include <opencv2/highgui.hpp>
-
 DICECoefficientVoxels::DICECoefficientVoxels(QObject *parent) : QObject(parent)
 {
     connect(&m_descWatcher,&QFutureWatcher<cimg_library::CImg<float>>::finished,this, &DICECoefficientVoxels::onComputeDescFinished);
-    connect(&m_distanceWatcher,&QFutureWatcher<void>::finished,this, &DICECoefficientVoxels::onComputeDistAllFinished);
 }
 
 void DICECoefficientVoxels::setAnimations(QVector<MocapAnimation *> animations)
@@ -46,22 +44,6 @@ QFuture<void> DICECoefficientVoxels::computeAllDistances()
     const QFuture<void> future = QtConcurrent::map(m_anims, f);
     m_distanceWatcher.setFuture(future);
     return future;
-}
-
-float DICECoefficientVoxels::getDistance(MocapAnimation &anim1, MocapAnimation &anim2)
-{
-    if (m_distanceMatrix.at<float>(anim1.getId(),anim2.getId()) < std::numeric_limits<float>::max())
-    {
-        return m_distanceMatrix.at<float>(anim1.getId(),anim2.getId());
-    }
-    else
-    {
-        const float res = computeDist(m_descriptors[anim1.getId()],m_descriptors[anim2.getId()]);
-        m_distanceMatrix.at<float>(anim1.getId(),anim2.getId()) =
-        m_distanceMatrix.at<float>(anim2.getId(),anim1.getId()) = res;
-
-        return res;
-    }
 }
 
 QWidget* DICECoefficientVoxels::getVisualization()
@@ -87,16 +69,8 @@ void DICECoefficientVoxels::onComputeDescFinished()
 {
     const auto future = m_descWatcher.future();
 
-    for (auto it = future.constBegin(); it != future.constEnd(); ++it)
-    {
-        m_descriptors[it->first] = it->second;
-
-    }
-}
-
-void DICECoefficientVoxels::onComputeDistAllFinished()
-{
-    cv::imwrite("/home/mkrajicek/Documents/SDIPR/mocap-segmenting/DICEVoxelsHDM65-alt.exr",m_distanceMatrix);
+    std::for_each(future.constBegin(),future.constEnd(),
+                  [this](auto &it){m_descriptors[it.first] = it.second;});
 }
 
 float DICECoefficientVoxels::computeDist(const cimg_library::CImg<uint8_t> &desc1,
@@ -129,7 +103,7 @@ void DICECoefficientVoxels::computeDistToAll(const MocapAnimation *anim,cv::Mat 
     {
         const int id2 = (*it)->getId();
         reducedResults.at<float>(id,id2) =
-        reducedResults.at<float>(id2,id) = computeDist(descriptors[(*it)->getId()],descriptors[anim->getId()]);
+                reducedResults.at<float>(id2,id) = computeDist(descriptors[(*it)->getId()],descriptors[anim->getId()]);
         ++it;
     }
 }

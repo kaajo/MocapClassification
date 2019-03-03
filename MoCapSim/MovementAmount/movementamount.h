@@ -39,7 +39,6 @@ public:
 
     QFuture<void> computeDescriptors() override;
     QFuture<void> computeAllDistances() override;
-    float getDistance(MocapAnimation &anim1, MocapAnimation &anim2) override;
 
     QWidget* getVisualization()  override;
     void selectionAdded(int animId) override;

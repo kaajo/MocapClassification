@@ -19,10 +19,12 @@
 
 #include <QMainWindow>
 #include <QListWidget>
+#include <QDir>
 
 #include "animplayer.h"
 #include "weigtedmean.h"
 #include "filterandrefine.h"
+#include "plugininfo.h"
 
 class IDistanceFunction;
 class MocapAnimation;
@@ -51,10 +53,16 @@ private slots:
 
     void on_actionLoadPlugin_triggered();
 
+    void on_actionLoad_HDM14_triggered();
+
+    void on_actionLoad_HDM65_triggered();
+
+    void on_actionLoad_HDM122_triggered();
+
 private:
     Ui::MainWindow *ui;
 
-    bool loadDataset(const QString &path,const int maxNOAnims = -1);
+    bool loadDataset(const QString &path, const QString &datasetName, const int maxNOAnims = -1);
 
     QVector<MocapAnimation*> m_anims;
     AnimPlayer *m_animPlayer = nullptr;
@@ -65,6 +73,10 @@ private:
     void datasetStats();
 
     QHash<QString,QSharedPointer<IDistanceFunction>> m_plugins;
+    QHash<QString,PluginInfo*> m_pluginInfos;
+
+    QString m_datasetName;
+    QDir m_saveMatrixDir;
 
     WeigtedMean *m_weightedMean = nullptr;
     FilterAndRefine *m_filterAndRefine = nullptr;

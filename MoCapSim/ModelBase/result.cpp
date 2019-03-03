@@ -16,10 +16,9 @@
 */
 
 #include "result.h"
+#include "mocapanimation.h"
 
 #include <algorithm>
-
-#include "mocapanimation.h"
 
 Result::Result(const MocapAnimation *anim,const QVector<QPair<float, MocapAnimation *> > &distance)
     : m_animation(anim),
@@ -34,7 +33,7 @@ void Result::printResult()
 {
     if (isCategoryMatched())
     {
-        //std::cout << "ID: " << m_animation->getId() << " MATCH!" << std::endl;
+        std::cout << "ID: " << m_animation->getId() << " MATCH!" << std::endl;
     }
     else
     {

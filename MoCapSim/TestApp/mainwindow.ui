@@ -132,6 +132,9 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoad_HDM14"/>
+    <addaction name="actionLoad_HDM65"/>
+    <addaction name="actionLoad_HDM122"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -225,6 +228,21 @@
   <action name="actionLoadPlugin">
    <property name="text">
     <string>Load</string>
+   </property>
+  </action>
+  <action name="actionLoad_HDM14">
+   <property name="text">
+    <string>Load HDM14</string>
+   </property>
+  </action>
+  <action name="actionLoad_HDM65">
+   <property name="text">
+    <string>Load HDM65</string>
+   </property>
+  </action>
+  <action name="actionLoad_HDM122">
+   <property name="text">
+    <string>Load HDM122</string>
    </property>
   </action>
  </widget>

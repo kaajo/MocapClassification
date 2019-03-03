@@ -48,22 +48,6 @@ QFuture<void> MovementAmount::computeAllDistances()
     return future;
 }
 
-float MovementAmount::getDistance(MocapAnimation &anim1, MocapAnimation &anim2)
-{
-    if (m_distanceMatrix.at<float>(anim1.getId(),anim2.getId()) < std::numeric_limits<float>::max())
-    {
-        return m_distanceMatrix.at<float>(anim1.getId(),anim2.getId());
-    }
-    else
-    {
-        const float res = computeDist(m_descriptors[anim1.getId()], m_descriptors[anim2.getId()]);
-        m_distanceMatrix.at<float>(anim1.getId(),anim2.getId()) =
-        m_distanceMatrix.at<float>(anim2.getId(),anim1.getId()) = res;
-
-        return res;
-    }
-}
-
 QWidget *MovementAmount::getVisualization()
 {
     return m_vis;
